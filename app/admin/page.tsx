@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Save, 
-  X, 
-  Calendar, 
-  Clock, 
-  Coffee, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Save,
+  X,
+  Calendar,
+  Clock,
+  Coffee,
   Music,
   ChefHat,
   Tags,
@@ -23,7 +23,7 @@ import {
   Image as ImageIcon,
   HardDrive,
   Database,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { z } from "zod";
@@ -31,32 +31,68 @@ import { z } from "zod";
 // Zod Schemas
 const specialMenuSchema = z.object({
   name: z.string().min(1, "Ürün adı gereklidir").max(100, "Ürün adı çok uzun"),
-  price: z.string().min(1, "Fiyat gereklidir").regex(/^\d+₺?$/, "Geçerli bir fiyat girin (örn: 25₺)"),
-  description: z.string().min(1, "Açıklama gereklidir").max(200, "Açıklama çok uzun"),
-  image: z.string().url("Geçerli bir URL girin").or(z.string().min(1, "Resim gereklidir"))
+  price: z
+    .string()
+    .min(1, "Fiyat gereklidir")
+    .regex(/^\d+₺?$/, "Geçerli bir fiyat girin (örn: 25₺)"),
+  description: z
+    .string()
+    .min(1, "Açıklama gereklidir")
+    .max(200, "Açıklama çok uzun"),
+  image: z
+    .string()
+    .url("Geçerli bir URL girin")
+    .or(z.string().min(1, "Resim gereklidir")),
 });
 
 const menuItemSchema = z.object({
   name: z.string().min(1, "Ürün adı gereklidir").max(100, "Ürün adı çok uzun"),
-  price: z.string().min(1, "Fiyat gereklidir").regex(/^\d+₺?$/, "Geçerli bir fiyat girin (örn: 25₺)"),
-  category: z.string().min(1, "Kategori gereklidir").max(50, "Kategori adı çok uzun"),
-  description: z.string().min(1, "Açıklama gereklidir").max(200, "Açıklama çok uzun")
+  price: z
+    .string()
+    .min(1, "Fiyat gereklidir")
+    .regex(/^\d+₺?$/, "Geçerli bir fiyat girin (örn: 25₺)"),
+  category: z
+    .string()
+    .min(1, "Kategori gereklidir")
+    .max(50, "Kategori adı çok uzun"),
+  description: z
+    .string()
+    .min(1, "Açıklama gereklidir")
+    .max(200, "Açıklama çok uzun"),
 });
 
 const categorySchema = z.object({
-  name: z.string().min(1, "Kategori adı gereklidir").max(50, "Kategori adı çok uzun")
+  name: z
+    .string()
+    .min(1, "Kategori adı gereklidir")
+    .max(50, "Kategori adı çok uzun"),
 });
 
 const eventSchema = z.object({
-  artist: z.string().min(1, "Sanatçı/Grup adı gereklidir").max(100, "Sanatçı adı çok uzun"),
-  date: z.string().min(1, "Tarih gereklidir").regex(/^\d{4}-\d{2}-\d{2}$/, "Geçerli bir tarih girin"),
-  time: z.string().min(1, "Saat gereklidir").regex(/^\d{2}:\d{2}$/, "Geçerli bir saat girin (örn: 20:00)"),
-  image: z.string().url("Geçerli bir URL girin").or(z.string().min(1, "Resim gereklidir"))
+  artist: z
+    .string()
+    .min(1, "Sanatçı/Grup adı gereklidir")
+    .max(100, "Sanatçı adı çok uzun"),
+  date: z
+    .string()
+    .min(1, "Tarih gereklidir")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Geçerli bir tarih girin"),
+  time: z
+    .string()
+    .min(1, "Saat gereklidir")
+    .regex(/^\d{2}:\d{2}$/, "Geçerli bir saat girin (örn: 20:00)"),
+  image: z
+    .string()
+    .url("Geçerli bir URL girin")
+    .or(z.string().min(1, "Resim gereklidir")),
 });
 
 type SpecialMenu = z.infer<typeof specialMenuSchema> & { id: number };
 type MenuItem = z.infer<typeof menuItemSchema> & { id: number };
-type Category = z.infer<typeof categorySchema> & { id: number; itemCount?: number };
+type Category = z.infer<typeof categorySchema> & {
+  id: number;
+  itemCount?: number;
+};
 type Event = z.infer<typeof eventSchema> & { id: number };
 
 // Supabase Storage Functions
@@ -65,40 +101,47 @@ const uploadImageToSupabase = async (file: File): Promise<string> => {
     // Mock implementation - gerçek uygulamada Supabase storage kullanılacak
     return `https://mock-storage.supabase.co/images/${Date.now()}-${file.name}`;
   } catch (error) {
-    console.error('Image upload error:', error);
-    throw new Error('Resim yüklenirken hata oluştu');
+    console.error("Image upload error:", error);
+    throw new Error("Resim yüklenirken hata oluştu");
   }
 };
 
 // Improved Image Input Component
-const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
+const ImageInput = ({
+  value,
+  onChange,
+  placeholder = "Resim",
+  error,
+}: {
   value: string;
   onChange: (url: string) => void;
   placeholder?: string;
   error?: string;
 }) => {
-  const [inputType, setInputType] = useState<'url' | 'file'>('url');
+  const [inputType, setInputType] = useState<"url" | "file">("url");
   const [isUploading, setIsUploading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(value || '');
+  const [previewUrl, setPreviewUrl] = useState(value || "");
 
   // Update preview when value changes from parent
   useEffect(() => {
-    setPreviewUrl(value || '');
+    setPreviewUrl(value || "");
   }, [value]);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Dosya boyutu kontrolü (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Dosya boyutu 5MB\'dan küçük olmalıdır.');
+      alert("Dosya boyutu 5MB'dan küçük olmalıdır.");
       return;
     }
 
     // Dosya tipi kontrolü
-    if (!file.type.startsWith('image/')) {
-      alert('Lütfen geçerli bir resim dosyası seçin.');
+    if (!file.type.startsWith("image/")) {
+      alert("Lütfen geçerli bir resim dosyası seçin.");
       return;
     }
 
@@ -113,8 +156,8 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
       onChange(uploadedUrl);
       setPreviewUrl(uploadedUrl);
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Resim yüklenirken hata oluştu.');
+      console.error("Upload error:", error);
+      alert("Resim yüklenirken hata oluştu.");
       // Preview'ı temizleme, hata durumunda local preview'ı koru
     } finally {
       setIsUploading(false);
@@ -127,8 +170,8 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
   };
 
   const clearImage = () => {
-    onChange('');
-    setPreviewUrl('');
+    onChange("");
+    setPreviewUrl("");
   };
 
   return (
@@ -137,9 +180,9 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
       <div className="flex gap-2">
         <Button
           type="button"
-          variant={inputType === 'url' ? 'default' : 'outline'}
+          variant={inputType === "url" ? "default" : "outline"}
           size="sm"
-          onClick={() => setInputType('url')}
+          onClick={() => setInputType("url")}
           className="flex-1"
         >
           <Link className="w-4 h-4 mr-1" />
@@ -147,9 +190,9 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
         </Button>
         <Button
           type="button"
-          variant={inputType === 'file' ? 'default' : 'outline'}
+          variant={inputType === "file" ? "default" : "outline"}
           size="sm"
-          onClick={() => setInputType('file')}
+          onClick={() => setInputType("file")}
           className="flex-1"
         >
           <Upload className="w-4 h-4 mr-1" />
@@ -158,10 +201,10 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
       </div>
 
       {/* Input Field */}
-      {inputType === 'url' ? (
+      {inputType === "url" ? (
         <div>
           <Input
-            value={value || ''}
+            value={value || ""}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder={`${placeholder} URL'si`}
             type="url"
@@ -209,8 +252,8 @@ const ImageInput = ({ value, onChange, placeholder = "Resim", error }: {
             className="w-full h-32 object-cover rounded-lg border border-gray-200"
             onError={() => {
               // Sadece URL hatası durumunda preview'ı temizle
-              if (inputType === 'url') {
-                setPreviewUrl('');
+              if (inputType === "url") {
+                setPreviewUrl("");
               }
             }}
           />
@@ -255,9 +298,7 @@ const Dialog = ({ isOpen, onClose, title, children }) => {
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <div className="p-6">
-            {children}
-          </div>
+          <div className="p-6">{children}</div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -266,14 +307,44 @@ const Dialog = ({ isOpen, onClose, title, children }) => {
 
 // Mock data
 const initialSpecialMenus = [
-  { id: 1, name: "Özel Kahve Karışımı", price: "45₺", description: "Ev yapımı özel karışım", image: "/special-menu.png" },
-  { id: 2, name: "Antik Nargile", price: "35₺", description: "Geleneksel lezzet", image: "/special-menu2.png" },
+  {
+    id: 1,
+    name: "Özel Kahve Karışımı",
+    price: "45₺",
+    description: "Ev yapımı özel karışım",
+    image: "/special-menu.png",
+  },
+  {
+    id: 2,
+    name: "Antik Nargile",
+    price: "35₺",
+    description: "Geleneksel lezzet",
+    image: "/special-menu2.png",
+  },
 ];
 
 const initialMenuItems = [
-  { id: 1, name: "Türk Kahvesi", price: "25₺", category: "Sıcak İçecekler", description: "Geleneksel Türk kahvesi" },
-  { id: 2, name: "Cappuccino", price: "30₺", category: "Sıcak İçecekler", description: "İtalyan usulü cappuccino" },
-  { id: 3, name: "Baklava", price: "20₺", category: "Tatlılar", description: "Ev yapımı baklava" },
+  {
+    id: 1,
+    name: "Türk Kahvesi",
+    price: "25₺",
+    category: "Sıcak İçecekler",
+    description: "Geleneksel Türk kahvesi",
+  },
+  {
+    id: 2,
+    name: "Cappuccino",
+    price: "30₺",
+    category: "Sıcak İçecekler",
+    description: "İtalyan usulü cappuccino",
+  },
+  {
+    id: 3,
+    name: "Baklava",
+    price: "20₺",
+    category: "Tatlılar",
+    description: "Ev yapımı baklava",
+  },
 ];
 
 const initialCategories = [
@@ -284,8 +355,22 @@ const initialCategories = [
 ];
 
 const initialEvents = [
-  { id: 1, artist: "Elif Çağlar", date: "2024-01-15", time: "20:00", image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop" },
-  { id: 2, artist: "Jazz Trio İstanbul", date: "2024-01-17", time: "21:00", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop" },
+  {
+    id: 1,
+    artist: "Elif Çağlar",
+    date: "2024-01-15",
+    time: "20:00",
+    image:
+      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
+  },
+  {
+    id: 2,
+    artist: "Jazz Trio İstanbul",
+    date: "2024-01-17",
+    time: "21:00",
+    image:
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+  },
 ];
 
 // Storage Usage Component
@@ -297,8 +382,8 @@ const StorageUsage = () => {
     breakdown: {
       images: 1.8,
       documents: 0.3,
-      other: 0.2
-    }
+      other: 0.2,
+    },
   };
 
   const usagePercentage = (storageData.used / storageData.total) * 100;
@@ -314,23 +399,27 @@ const StorageUsage = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Database className="w-5 h-5 text-amber-600" />
-            <h3 className="font-semibold text-amber-800">Supabase Storage Kullanımı</h3>
+            <h3 className="font-semibold text-amber-800">
+              Supabase Storage Kullanımı
+            </h3>
           </div>
           <div className="text-sm text-gray-600">
             {storageData.used} GB / {storageData.total} GB
           </div>
         </div>
-        
+
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
           <motion.div
-            className={`h-3 rounded-full bg-gradient-to-r ${getUsageColor(usagePercentage)}`}
+            className={`h-3 rounded-full bg-gradient-to-r ${getUsageColor(
+              usagePercentage
+            )}`}
             initial={{ width: 0 }}
             animate={{ width: `${usagePercentage}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
           />
         </div>
-        
+
         {/* Storage Breakdown */}
         <div className="grid grid-cols-3 gap-4 text-sm">
           <div className="text-center">
@@ -341,7 +430,9 @@ const StorageUsage = () => {
           <div className="text-center">
             <div className="w-3 h-3 bg-purple-500 rounded-full mx-auto mb-1"></div>
             <div className="text-gray-600">Dökümanlar</div>
-            <div className="font-medium">{storageData.breakdown.documents} GB</div>
+            <div className="font-medium">
+              {storageData.breakdown.documents} GB
+            </div>
           </div>
           <div className="text-center">
             <div className="w-3 h-3 bg-gray-500 rounded-full mx-auto mb-1"></div>
@@ -356,7 +447,8 @@ const StorageUsage = () => {
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("special-menu");
-  const [specialMenus, setSpecialMenus] = useState<SpecialMenu[]>(initialSpecialMenus);
+  const [specialMenus, setSpecialMenus] =
+    useState<SpecialMenu[]>(initialSpecialMenus);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [events, setEvents] = useState<Event[]>(initialEvents);
@@ -367,10 +459,30 @@ export default function AdminPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const tabs = [
-    { id: "special-menu", name: "Özel Menü", icon: ChefHat, color: "from-amber-500 to-orange-500" },
-    { id: "menu-items", name: "Menü İçeriği", icon: Coffee, color: "from-blue-500 to-cyan-500" },
-    { id: "categories", name: "Kategoriler", icon: Tags, color: "from-green-500 to-emerald-500" },
-    { id: "events", name: "Etkinlikler", icon: Music, color: "from-purple-500 to-pink-500" },
+    {
+      id: "special-menu",
+      name: "Özel Menü",
+      icon: ChefHat,
+      color: "from-amber-500 to-orange-500",
+    },
+    {
+      id: "menu-items",
+      name: "Menü İçeriği",
+      icon: Coffee,
+      color: "from-blue-500 to-cyan-500",
+    },
+    {
+      id: "categories",
+      name: "Kategoriler",
+      icon: Tags,
+      color: "from-green-500 to-emerald-500",
+    },
+    {
+      id: "events",
+      name: "Etkinlikler",
+      icon: Music,
+      color: "from-purple-500 to-pink-500",
+    },
   ];
 
   const validateForm = (data: any, schema: z.ZodSchema) => {
@@ -431,7 +543,7 @@ export default function AdminPage() {
 
   const handleSave = () => {
     const schema = getValidationSchema();
-    
+
     if (!validateForm(formData, schema)) {
       return;
     }
@@ -440,34 +552,53 @@ export default function AdminPage() {
       const updatedItem = { ...formData };
       switch (activeTab) {
         case "special-menu":
-          setSpecialMenus(prev => prev.map(item => item.id === editingItem.id ? updatedItem as SpecialMenu : item));
+          setSpecialMenus((prev) =>
+            prev.map((item) =>
+              item.id === editingItem.id ? (updatedItem as SpecialMenu) : item
+            )
+          );
           break;
         case "menu-items":
-          setMenuItems(prev => prev.map(item => item.id === editingItem.id ? updatedItem as MenuItem : item));
+          setMenuItems((prev) =>
+            prev.map((item) =>
+              item.id === editingItem.id ? (updatedItem as MenuItem) : item
+            )
+          );
           break;
         case "categories":
-          setCategories(prev => prev.map(item => item.id === editingItem.id ? updatedItem as Category : item));
+          setCategories((prev) =>
+            prev.map((item) =>
+              item.id === editingItem.id ? (updatedItem as Category) : item
+            )
+          );
           break;
         case "events":
-          setEvents(prev => prev.map(item => item.id === editingItem.id ? updatedItem as Event : item));
+          setEvents((prev) =>
+            prev.map((item) =>
+              item.id === editingItem.id ? (updatedItem as Event) : item
+            )
+          );
           break;
       }
     } else if (dialogMode === "add" && Object.keys(formData).length > 0) {
       const id = Date.now();
       const newItem = { ...formData, id };
-      
+
       switch (activeTab) {
         case "special-menu":
-          setSpecialMenus(prev => [...prev, newItem as SpecialMenu]);
+          setSpecialMenus((prev) => [...prev, newItem as SpecialMenu]);
           break;
         case "menu-items":
-          setMenuItems(prev => [...prev, newItem as MenuItem]);
+          setMenuItems((prev) => [...prev, newItem as MenuItem]);
           break;
         case "categories":
-          setCategories(prev => [...prev, { ...newItem, itemCount: 0 } as Category]);
+          setCategories((prev) => [
+            ...prev,
+            { ...newItem, itemCount: 0 } as Category,
+          ]);
           break;
         case "events":
-          setEvents(prev => [...prev, newItem as Event]);
+          setEvents((prev) => [...prev, newItem as Event]);
           break;
       }
     }
@@ -477,16 +608,16 @@ export default function AdminPage() {
   const handleDelete = (id, type) => {
     switch (type) {
       case "special-menu":
-        setSpecialMenus(prev => prev.filter(item => item.id !== id));
+        setSpecialMenus((prev) => prev.filter((item) => item.id !== id));
         break;
       case "menu-items":
-        setMenuItems(prev => prev.filter(item => item.id !== id));
+        setMenuItems((prev) => prev.filter((item) => item.id !== id));
         break;
       case "categories":
-        setCategories(prev => prev.filter(item => item.id !== id));
+        setCategories((prev) => prev.filter((item) => item.id !== id));
         break;
       case "events":
-        setEvents(prev => prev.filter(item => item.id !== id));
+        setEvents((prev) => prev.filter((item) => item.id !== id));
         break;
     }
   };
@@ -498,22 +629,28 @@ export default function AdminPage() {
           <div className="space-y-4">
             <Input
               value={formData.name || ""}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Ürün Adı"
             />
             <Input
               value={formData.price || ""}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, price: e.target.value })
+              }
               placeholder="Fiyat"
             />
             <Input
               value={formData.description || ""}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Açıklama"
             />
             <ImageInput
               value={formData.image || ""}
-              onChange={(url) => setFormData({...formData, image: url})}
+              onChange={(url) => setFormData({ ...formData, image: url })}
               placeholder="Ürün Resmi"
             />
             <div className="flex gap-2 pt-4">
@@ -521,7 +658,11 @@ export default function AdminPage() {
                 <Save className="w-4 h-4 mr-2" />
                 {dialogMode === "edit" ? "Güncelle" : "Ekle"}
               </Button>
-              <Button onClick={closeDialog} variant="outline" className="flex-1">
+              <Button
+                onClick={closeDialog}
+                variant="outline"
+                className="flex-1"
+              >
                 <X className="w-4 h-4 mr-2" /> İptal
               </Button>
             </div>
@@ -533,22 +674,30 @@ export default function AdminPage() {
           <div className="space-y-4">
             <Input
               value={formData.name || ""}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Ürün Adı"
             />
             <Input
               value={formData.price || ""}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, price: e.target.value })
+              }
               placeholder="Fiyat"
             />
             <Input
               value={formData.category || ""}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, category: e.target.value })
+              }
               placeholder="Kategori"
             />
             <Input
               value={formData.description || ""}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               placeholder="Açıklama"
             />
             <div className="flex gap-2 pt-4">
@@ -556,7 +705,11 @@ export default function AdminPage() {
                 <Save className="w-4 h-4 mr-2" />
                 {dialogMode === "edit" ? "Güncelle" : "Ekle"}
               </Button>
-              <Button onClick={closeDialog} variant="outline" className="flex-1">
+              <Button
+                onClick={closeDialog}
+                variant="outline"
+                className="flex-1"
+              >
                 <X className="w-4 h-4 mr-2" /> İptal
               </Button>
             </div>
@@ -568,7 +721,9 @@ export default function AdminPage() {
           <div className="space-y-4">
             <Input
               value={formData.name || ""}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Kategori Adı"
             />
             <div className="flex gap-2 pt-4">
@@ -576,7 +731,11 @@ export default function AdminPage() {
                 <Save className="w-4 h-4 mr-2" />
                 {dialogMode === "edit" ? "Güncelle" : "Ekle"}
               </Button>
-              <Button onClick={closeDialog} variant="outline" className="flex-1">
+              <Button
+                onClick={closeDialog}
+                variant="outline"
+                className="flex-1"
+              >
                 <X className="w-4 h-4 mr-2" /> İptal
               </Button>
             </div>
@@ -588,24 +747,30 @@ export default function AdminPage() {
           <div className="space-y-4">
             <Input
               value={formData.artist || ""}
-              onChange={(e) => setFormData({...formData, artist: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, artist: e.target.value })
+              }
               placeholder="Sanatçı/Grup Adı"
             />
             <Input
               type="date"
               value={formData.date || ""}
-              onChange={(e) => setFormData({...formData, date: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, date: e.target.value })
+              }
               placeholder="Tarih"
             />
             <Input
               type="time"
               value={formData.time || ""}
-              onChange={(e) => setFormData({...formData, time: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, time: e.target.value })
+              }
               placeholder="Saat"
             />
             <ImageInput
               value={formData.image || ""}
-              onChange={(url) => setFormData({...formData, image: url})}
+              onChange={(url) => setFormData({ ...formData, image: url })}
               placeholder="Etkinlik Resmi"
             />
             <div className="flex gap-2 pt-4">
@@ -613,7 +778,11 @@ export default function AdminPage() {
                 <Save className="w-4 h-4 mr-2" />
                 {dialogMode === "edit" ? "Güncelle" : "Ekle"}
               </Button>
-              <Button onClick={closeDialog} variant="outline" className="flex-1">
+              <Button
+                onClick={closeDialog}
+                variant="outline"
+                className="flex-1"
+              >
                 <X className="w-4 h-4 mr-2" /> İptal
               </Button>
             </div>
@@ -626,8 +795,10 @@ export default function AdminPage() {
   };
 
   const getDialogTitle = () => {
-    const tabName = tabs.find(tab => tab.id === activeTab)?.name || "";
-    return dialogMode === "edit" ? `${tabName} Düzenle` : `Yeni ${tabName} Ekle`;
+    const tabName = tabs.find((tab) => tab.id === activeTab)?.name || "";
+    return dialogMode === "edit"
+      ? `${tabName} Düzenle`
+      : `Yeni ${tabName} Ekle`;
   };
 
   const renderContent = () => {
@@ -639,18 +810,34 @@ export default function AdminPage() {
               <Card key={item.id} className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
                     <div>
-                      <h3 className="font-semibold text-amber-800">{item.name}</h3>
-                      <p className="text-gray-600 text-sm">{item.description}</p>
+                      <h3 className="font-semibold text-amber-800">
+                        {item.name}
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        {item.description}
+                      </p>
                       <Badge variant="secondary">{item.price}</Badge>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => openEditDialog(item)} size="sm" variant="outline">
+                    <Button
+                      onClick={() => openEditDialog(item)}
+                      size="sm"
+                      variant="outline"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button onClick={() => handleDelete(item.id, "special-menu")} size="sm" variant="destructive">
+                    <Button
+                      onClick={() => handleDelete(item.id, "special-menu")}
+                      size="sm"
+                      variant="destructive"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -667,7 +854,9 @@ export default function AdminPage() {
               <Card key={item.id} className="p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="font-semibold text-amber-800">{item.name}</h3>
+                    <h3 className="font-semibold text-amber-800">
+                      {item.name}
+                    </h3>
                     <p className="text-gray-600 text-sm">{item.description}</p>
                     <div className="flex gap-2 mt-1">
                       <Badge variant="secondary">{item.price}</Badge>
@@ -675,10 +864,18 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => openEditDialog(item)} size="sm" variant="outline">
+                    <Button
+                      onClick={() => openEditDialog(item)}
+                      size="sm"
+                      variant="outline"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button onClick={() => handleDelete(item.id, "menu-items")} size="sm" variant="destructive">
+                    <Button
+                      onClick={() => handleDelete(item.id, "menu-items")}
+                      size="sm"
+                      variant="destructive"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -695,14 +892,24 @@ export default function AdminPage() {
               <Card key={item.id} className="p-4">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h3 className="font-semibold text-amber-800">{item.name}</h3>
+                    <h3 className="font-semibold text-amber-800">
+                      {item.name}
+                    </h3>
                     <Badge variant="secondary">{item.itemCount} ürün</Badge>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => openEditDialog(item)} size="sm" variant="outline">
+                    <Button
+                      onClick={() => openEditDialog(item)}
+                      size="sm"
+                      variant="outline"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button onClick={() => handleDelete(item.id, "categories")} size="sm" variant="destructive">
+                    <Button
+                      onClick={() => handleDelete(item.id, "categories")}
+                      size="sm"
+                      variant="destructive"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -719,9 +926,15 @@ export default function AdminPage() {
               <Card key={item.id} className="p-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                    <img src={item.image} alt={item.artist} className="w-16 h-16 object-cover rounded-lg" />
+                    <img
+                      src={item.image}
+                      alt={item.artist}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
                     <div>
-                      <h3 className="font-semibold text-amber-800">{item.artist}</h3>
+                      <h3 className="font-semibold text-amber-800">
+                        {item.artist}
+                      </h3>
                       <div className="flex gap-2 mt-1">
                         <Badge variant="secondary">
                           <Calendar className="w-3 h-3 mr-1" />
@@ -735,10 +948,18 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => openEditDialog(item)} size="sm" variant="outline">
+                    <Button
+                      onClick={() => openEditDialog(item)}
+                      size="sm"
+                      variant="outline"
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
-                    <Button onClick={() => handleDelete(item.id, "events")} size="sm" variant="destructive">
+                    <Button
+                      onClick={() => handleDelete(item.id, "events")}
+                      size="sm"
+                      variant="destructive"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -756,7 +977,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
       <Header />
-      
+
       <div className="container mx-auto px-4 py-8 mt-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -766,7 +987,9 @@ export default function AdminPage() {
         >
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-amber-800 mb-2">Admin Paneli</h1>
+            <h1 className="text-4xl font-bold text-amber-800 mb-2">
+              Admin Paneli
+            </h1>
             <p className="text-gray-600">Menü ve etkinlik yönetimi</p>
           </div>
 
