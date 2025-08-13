@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, Music } from "lucide-react";
 import Header from "@/components/header";
+import Footer from "@/components/footer";
 
 const heroImages = [
   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
@@ -22,7 +23,8 @@ const musicEvents = [
     day: "Pazartesi",
     time: "20:00",
     artist: "Elif Çağlar",
-    image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
   },
   {
     id: 2,
@@ -30,7 +32,8 @@ const musicEvents = [
     day: "Çarşamba",
     time: "21:00",
     artist: "Jazz Trio İstanbul",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
   },
   {
     id: 3,
@@ -38,7 +41,8 @@ const musicEvents = [
     day: "Cuma",
     time: "20:30",
     artist: "Mert Demir",
-    image: "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=400&h=300&fit=crop",
   },
   {
     id: 4,
@@ -46,7 +50,8 @@ const musicEvents = [
     day: "Pazartesi",
     time: "20:00",
     artist: "Botanica Akustik",
-    image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop",
   },
   {
     id: 5,
@@ -54,7 +59,8 @@ const musicEvents = [
     day: "Çarşamba",
     time: "21:00",
     artist: "Selin & Gitarı",
-    image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
   },
   {
     id: 6,
@@ -62,7 +68,8 @@ const musicEvents = [
     day: "Cuma",
     time: "20:30",
     artist: "World Music Collective",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
+    image:
+      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
   },
 ];
 
@@ -87,9 +94,9 @@ export default function LiveMusicPage() {
   };
 
   const scrollToEvents = () => {
-    eventsRef.current?.scrollIntoView({ 
+    eventsRef.current?.scrollIntoView({
       behavior: "smooth",
-      block: "start"
+      block: "start",
     });
   };
 
@@ -192,7 +199,9 @@ export default function LiveMusicPage() {
                   <div className="space-y-3">
                     <div className="flex items-center text-gray-600">
                       <Calendar className="w-4 h-4 mr-2" />
-                      <span className="text-sm">{formatDate(event.date)} - {event.day}</span>
+                      <span className="text-sm">
+                        {formatDate(event.date)} - {event.day}
+                      </span>
                     </div>
                     <div className="flex items-center text-gray-600">
                       <Clock className="w-4 h-4 mr-2" />
@@ -239,6 +248,7 @@ export default function LiveMusicPage() {
           </Card>
         </motion.div>
       </div>
+      <Footer />
     </div>
   );
 }

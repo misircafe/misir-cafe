@@ -17,6 +17,7 @@ import Link from "next/link";
 import Header from "@/components/header";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import Footer from "@/components/footer";
 
 const heroImages = ["/background.jpg", "/background2.jpg"];
 
@@ -308,44 +309,7 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <motion.footer
-        className="bg-amber-950 text-amber-100 py-8 sm:py-12 border-t border-amber-800"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-      >
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center">
-            <motion.h3
-              className="text-3xl sm:text-4xl font-bold text-white mb-4 font-serif"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              Mısır Cafe
-            </motion.h3>
-            <p className="text-lg sm:text-xl text-amber-200 mb-6">
-              Doğanın büyüsü ve kahvenin aromasının buluştuğu özel mekan
-            </p>
-            <div className="flex flex-col sm:flex-col items-center justify-center gap-4 text-sm">
-              <div>
-                <p>© 2024 Mısır Cafe. Tüm hakları saklıdır.</p>
-              </div>
-              <p>
-                Designed by{" "}
-                <motion.a
-                  href="mailto:enesseval@outlook.com"
-                  className="text-amber-300 hover:text-amber-200 transition-colors underline decoration-dotted"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  enesseval
-                </motion.a>
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.footer>
+      <Footer />
     </div>
   );
 }

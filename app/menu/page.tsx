@@ -8,6 +8,7 @@ import { Search, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import Header from "@/components/header";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Footer from "@/components/footer";
 
 const heroImages = [
   "/special-menu.png",
@@ -495,6 +496,7 @@ export default function MenuPage() {
           </motion.div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
