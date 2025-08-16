@@ -254,58 +254,64 @@ export default function HomePage() {
       >
         <div className="max-w-6xl mx-auto px-4">
           <motion.div
-            className="text-center mb-8 sm:mb-12 lg:mb-16"
+            className="text-center mb-2 sm:mb-4 lg:mb-6"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4 font-serif">
+            <h2 className="text-3xl sm:text-4xl font-bold font-serif">
               Bize Ulaşın
             </h2>
-            <p className="text-lg sm:text-xl text-amber-100 px-4">
-              Sorularınız için bizimle iletişime geçin
-            </p>
           </motion.div>
 
-          <div className="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: MapPin,
-                title: "Adres",
-                content: "Botanik Sokak No:15\nKadıköy, İstanbul",
-              },
-              { icon: Phone, title: "Telefon", content: "+90 216 555 0123" },
-              { icon: Mail, title: "E-posta", content: "info@misircafe.com" },
-              {
-                icon: Clock,
-                title: "Çalışma Saatleri",
-                content: "Pazartesi - Pazar\n08:00 - 24:00",
-              },
-            ].map((item, index) => (
-              <motion.div
-                key={item.title}
-                className="text-center p-4"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -5 }}
-              >
-                <motion.div
-                  className="w-16 h-16 bg-amber-700/50 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-lg"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <item.icon className="w-8 h-8" />
-                </motion.div>
-                <h3 className="text-lg font-semibold mb-2">{item.title}</h3>
-                <p className="text-amber-100 text-sm leading-relaxed whitespace-pre-line">
-                  {item.content}
-                </p>
-              </motion.div>
-            ))}
-          </div>
+          {/* Harita Bölümü */}
+          <motion.div
+            className="w-full h-96 rounded-2xl overflow-hidden shadow-2xl"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d765.024779456248!2d32.85413657590099!3d39.91679802222887!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d34faa24408aa7%3A0xe6db11dd6d3b6fc5!2zTcSxc8SxciBDYWZl!5e0!3m2!1str!2str!4v1755368607626!5m2!1str!2str"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Mısır Cafe Konum"
+            />
+          </motion.div>
+
+          {/* İletişim Bilgileri - Harita Altında Tek Satırda */}
+          <motion.div
+            className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <MapPin className="w-5 h-5" />
+              <span className="text-amber-100">
+                Meşrutiyet, Karanfil Sk. No:34/A, 06420 Çankaya/Ankara
+              </span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Phone className="w-5 h-5" />
+              <span className="text-amber-100">+90 216 555 0123</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Mail className="w-5 h-5" />
+              <span className="text-amber-100">info@misircafe.com</span>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <Clock className="w-5 h-5" />
+              <span className="text-amber-100">08:00 - 24:00</span>
+            </div>
+          </motion.div>
         </div>
       </motion.section>
 

@@ -9,6 +9,22 @@ import Header from "@/components/header";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Footer from "@/components/footer";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const heroImages = [
   "/special-menu.png",
@@ -152,39 +168,19 @@ export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Mobile detection
   useEffect(() => {
-    // Temizlik
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-    if (isPaused) return;
-
-    // Progress bar'ı sıfırla
-    setProgress(0);
-
-    // Progress bar animasyonu
-    intervalRef.current = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + 2; // Her 100ms'de %2.5 artır (4 saniye = 40 adım)
-        return newProgress >= 100 ? 100 : newProgress;
-      });
-    }, 100);
-
-    // 4 saniye sonra resim değiştir
-    timeoutRef.current = setTimeout(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
-  }, [currentImageIndex, isPaused]);
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
@@ -205,7 +201,7 @@ export default function MenuPage() {
       ? menuData
       : menuData.filter((category) => category.id === selectedCategory);
 
-  const searchInCategories = (categories) => {
+  const searchInCategories = (categories: typeof menuData) => {
     if (!searchTerm) return categories;
 
     return categories
@@ -225,76 +221,7 @@ export default function MenuPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
       <Header />
-      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 mt-16">
-        <motion.div
-          className="relative w-full aspect-square md:w-[600px] md:h-[600px] md:aspect-auto rounded-2xl overflow-hidden mb-8 sm:mb-12 mx-auto group"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
-          {heroImages.map((image, index) => (
-            <div
-              key={index}
-              className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-              style={{
-                opacity: index === currentImageIndex ? 1 : 0,
-              }}
-            >
-              <Image
-                src={image || "/placeholder.svg"}
-                alt={`Menu ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 600px"
-                priority={index === 0}
-              />
-            </div>
-          ))}
-          <div className="absolute inset-0 bg-black/20" />
-
-          {/* Navigation Arrows */}
-          <button
-            onClick={prevImage}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-
-          <button
-            onClick={nextImage}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white p-2 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 z-10"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </button>
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-            {heroImages.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToImage(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  index === currentImageIndex
-                    ? "bg-white scale-110"
-                    : "bg-white/50 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 z-10">
-            <div className="w-full bg-white/30 h-1">
-              <div
-                className="h-full bg-white transition-all duration-100 ease-linear"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        </motion.div>
-
+      <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 mt-40">
         <motion.div
           className="text-center mb-8 sm:mb-12"
           initial={{ opacity: 0, y: 30 }}
@@ -327,174 +254,294 @@ export default function MenuPage() {
             />
           </div>
         </motion.div>
-
-        {/* Category Filter */}
-        <motion.div
-          className="flex flex-wrap justify-center gap-2 mb-8 sm:mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant={selectedCategory === "all" ? "default" : "outline"}
-              onClick={() => setSelectedCategory("all")}
-              className={`text-sm ${
-                selectedCategory === "all"
-                  ? "bg-amber-600 hover:bg-amber-700"
-                  : "border-amber-200 hover:border-amber-400"
-              }`}
-            >
-              Tümü
-            </Button>
-          </motion.div>
-          {menuData.map((category, index) => (
-            <motion.div
-              key={category.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.7 + index * 0.1 }}
-            >
-              <Button
-                variant={
-                  selectedCategory === category.id ? "default" : "outline"
-                }
-                onClick={() => setSelectedCategory(category.id)}
-                className={`text-sm ${
-                  selectedCategory === category.id
-                    ? "bg-amber-600 hover:bg-amber-700"
-                    : "border-amber-200 hover:border-amber-400"
-                }`}
+        <Tabs defaultValue="menu">
+          <TabsList className="mx-auto bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
+            <div className="bg-transparent">
+              <TabsTrigger 
+                value="menu" 
+                className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
               >
-                {category.name}
-              </Button>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Menu Categories */}
-        <div className="space-y-12">
-          {displayCategories.map((category, categoryIndex) => (
+                Menü
+              </TabsTrigger>
+              <TabsTrigger 
+                value="advantage-menu" 
+                className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
+              >
+                Avantajlı menüler
+              </TabsTrigger>
+            </div>
+          </TabsList>
+          <TabsContent value="menu">
+            {/* Category Filter - Responsive */}
             <motion.div
-              key={category.id}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden"
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: categoryIndex * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
+              className=""
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <div className="relative h-48 sm:h-64 overflow-hidden">
-                <motion.img
-                  src={category.image || "/placeholder.svg"}
-                  alt={category.name}
-                  className="w-full h-full object-cover"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.6 }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="p-2 max-w-[1200px] mx-auto">
+                <Tabs
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
+                  className="w-full flex flex-col items-center"
+                >
+                  <TabsList className="max-w-[500px] my-10 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
+                    {isMobile ? (
+                      <>
+                        <Select
+                          onValueChange={setSelectedCategory}
+                          value={selectedCategory}
+                        >
+                          <SelectTrigger className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300 hover:border-amber-400 focus:border-amber-500 text-amber-800 font-semibold shadow-md">
+                            <SelectValue placeholder="Kategori seçiniz" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-gradient-to-b from-amber-50 to-orange-50 border-amber-200 shadow-xl">
+                            <SelectGroup>
+                              <SelectItem 
+                                value="all" 
+                                className="hover:bg-amber-100 focus:bg-amber-200 text-amber-800 font-medium"
+                              >
+                                Tüm Yemekler
+                              </SelectItem>
+                              {menuData.map((category) => (
+                                <SelectItem
+                                  value={category.id}
+                                  key={category.id}
+                                  className="hover:bg-amber-100 focus:bg-amber-200 text-amber-800 font-medium"
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <Carousel
+                          className="max-w-[400px]"
+                          opts={{ align: "center" }}
+                        >
+                          <CarouselContent>
+                            <CarouselItem className="basis-auto">
+                              <TabsTrigger 
+                                value="all"
+                                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold text-amber-800 border border-amber-300 shadow-sm"
+                              >
+                                Tüm Yemekler
+                              </TabsTrigger>
+                            </CarouselItem>
+                            {menuData.map((category) => (
+                              <CarouselItem
+                                key={category.id}
+                                className="basis-auto"
+                              >
+                                <TabsTrigger 
+                                  value={category.id}
+                                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold text-amber-800 border border-amber-300 shadow-sm"
+                                >
+                                  {category.name}
+                                </TabsTrigger>
+                              </CarouselItem>
+                            ))}
+                          </CarouselContent>
+                          <CarouselNext className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 border-amber-400 shadow-lg" />
+                          <CarouselPrevious className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 border-amber-400 shadow-lg" />
+                        </Carousel>
+                      </div>
+                    )}
+                  </TabsList>
+                  <TabsContent className="w-full" value={selectedCategory}>
+                    {displayCategories.map((category, categoryIndex) => (
+                      <motion.div
+                        key={category.id}
+                        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-12"
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{
+                          duration: 0.6,
+                          delay: categoryIndex * 0.1,
+                        }}
+                        viewport={{ once: true }}
+                        whileHover={{ y: -5 }}
+                      >
+                        <div className="relative h-48 sm:h-64 overflow-hidden">
+                          <motion.img
+                            src={category.image || "/placeholder.svg"}
+                            alt={category.name}
+                            className="w-full h-full object-cover"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.6 }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <motion.div
+                            className="absolute bottom-6 left-6 text-white"
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            viewport={{ once: true }}
+                          >
+                            <h2 className="text-2xl sm:text-3xl font-bold mb-2">
+                              {category.name}
+                            </h2>
+                            <p className="text-sm sm:text-base opacity-90">
+                              {category.subtitle}
+                            </p>
+                          </motion.div>
+                        </div>
+
+                        <div className="p-6 sm:p-8">
+                          <div className="grid gap-3 sm:gap-4">
+                            {category.items.map((item, index) => (
+                              <motion.div
+                                key={index}
+                                className="flex justify-between items-start py-3 border-b border-amber-100 last:border-b-0"
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{
+                                  duration: 0.4,
+                                  delay: index * 0.05,
+                                }}
+                                viewport={{ once: true }}
+                                whileHover={{
+                                  x: 5,
+                                  backgroundColor: "rgba(251, 191, 36, 0.05)",
+                                }}
+                              >
+                                <div className="flex-1 pr-4">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
+                                      {item.name}
+                                    </h3>
+                                    {Math.random() > 0.7 && (
+                                      <motion.div
+                                        initial={{ scale: 0 }}
+                                        whileInView={{ scale: 1 }}
+                                        transition={{
+                                          type: "spring",
+                                          stiffness: 500,
+                                          delay: index * 0.1,
+                                        }}
+                                        viewport={{ once: true }}
+                                      >
+                                        <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-2 py-1">
+                                          <Star className="w-3 h-3 mr-1" />
+                                          Popüler
+                                        </Badge>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                  <p className="text-gray-600 text-sm">
+                                    {item.description}
+                                  </p>
+                                </div>
+                                <motion.div
+                                  className="text-right"
+                                  whileHover={{ scale: 1.05 }}
+                                >
+                                  <span className="text-xl font-bold text-amber-700">
+                                    {item.price
+                                      ? `${item.price}₺`
+                                      : "Fiyat için sorunuz"}
+                                  </span>
+                                </motion.div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+
+                    {displayCategories.length === 0 && (
+                      <motion.div
+                        className="text-center py-12"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <motion.div
+                          className="text-6xl mb-4"
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Number.POSITIVE_INFINITY,
+                          }}
+                        >
+                          🔍
+                        </motion.div>
+                        <p className="text-gray-500 text-lg mb-2">
+                          Aradığınız kriterlere uygun ürün bulunamadı.
+                        </p>
+                        <p className="text-gray-400 text-sm">
+                          Farklı anahtar kelimeler deneyin veya kategori
+                          filtrelerini değiştirin.
+                        </p>
+                      </motion.div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </motion.div>
+          </TabsContent>
+          <TabsContent value="advantage-menu">
+            <motion.div
+              className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              {heroImages.map((image, index) => (
                 <motion.div
-                  className="absolute bottom-6 left-6 text-white"
-                  initial={{ opacity: 0, x: -30 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200"
+                  key={index}
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: index * 0.1,
+                    type: "spring",
+                    stiffness: 100,
+                  }}
+                  whileHover={{
+                    y: -10,
+                    scale: 1.02,
+                    transition: { duration: 0.3 },
+                    boxShadow: "0 25px 50px -12px rgba(251, 191, 36, 0.25)",
+                  }}
                   viewport={{ once: true }}
                 >
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                    {category.name}
-                  </h2>
-                  <p className="text-sm sm:text-base opacity-90">
-                    {category.subtitle}
-                  </p>
-                </motion.div>
-              </div>
-
-              <div className="p-6 sm:p-8">
-                <div className="grid gap-3 sm:gap-4">
-                  {category.items.map((item, index) => (
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative overflow-hidden rounded-xl"
+                  >
+                    <Image
+                      src={image || "/placeholder.svg"}
+                      alt={`Menu ${index + 1}`}
+                      width={400}
+                      height={600}
+                      className="w-full h-auto object-cover"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                      priority={index === 0}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                  </motion.div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-800/80 to-transparent p-3">
                     <motion.div
-                      key={index}
-                      className="flex justify-between items-start py-3 border-b border-amber-100 last:border-b-0"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.05 }}
-                      viewport={{ once: true }}
-                      whileHover={{
-                        x: 5,
-                        backgroundColor: "rgba(251, 191, 36, 0.05)",
-                      }}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileHover={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-white text-center"
                     >
-                      <div className="flex-1 pr-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
-                            {item.name}
-                          </h3>
-                          {Math.random() > 0.7 && (
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              whileInView={{ scale: 1 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 300,
-                                delay: 0.2,
-                              }}
-                              viewport={{ once: true }}
-                            >
-                              <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs">
-                                <Star className="w-3 h-3 mr-1 fill-current" />
-                                Popüler
-                              </Badge>
-                            </motion.div>
-                          )}
-                        </div>
-                        <p className="text-gray-600 text-sm leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        {item.price && (
-                          <motion.span
-                            className="text-lg sm:text-xl font-bold text-amber-600"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 300 }}
-                          >
-                            {item.price} ₺
-                          </motion.span>
-                        )}
-                      </div>
+                      <p className="text-sm font-semibold">Özel Menü {index + 1}</p>
                     </motion.div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
-        </div>
-
-        {displayCategories.length === 0 && (
-          <motion.div
-            className="text-center py-12"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.div
-              className="text-6xl mb-4"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-            >
-              🔍
-            </motion.div>
-            <p className="text-gray-500 text-lg mb-2">
-              Aradığınız kriterlere uygun ürün bulunamadı.
-            </p>
-            <p className="text-gray-400 text-sm">
-              Farklı anahtar kelimeler deneyin veya kategori filtrelerini
-              değiştirin.
-            </p>
-          </motion.div>
-        )}
+          </TabsContent>
+        </Tabs>
       </div>
       <Footer />
     </div>

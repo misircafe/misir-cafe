@@ -30,18 +30,18 @@ export default function Header() {
   ];
 
   return (
-    <>
+    <div className="w-full flex justify-center">
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out bg-white/50 backdrop-blur-lg border-b border-amber-800",
+          "fixed top-8 z-50 w-11/12 md:w-9/12 mx-auto transition-all duration-500 ease-out bg-white/50 backdrop-blur-lg rounded-4xl border border-black/50",
           pathname === "/menu" && "bg-gradient-to-b from-amber-50 to-orange-50"
         )}
       >
-        <div className="max-w-full md:max-w-10/12 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-full lg:max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-32">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <motion.h1
@@ -168,6 +168,6 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
