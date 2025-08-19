@@ -1,30 +1,14 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Star } from "lucide-react";
 import Header from "@/components/header";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Footer from "@/components/footer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const heroImages = [
   "/special-menu.png",
@@ -34,6 +18,7 @@ const heroImages = [
   "/special-menu5.png",
 ];
 
+// Dummy data (senin menuData burada)
 const menuData = [
   {
     id: "kahveler",
@@ -164,38 +149,57 @@ const menuData = [
   },
 ];
 
+// Easing fonksiyonumuz (yavaş-hızlı-yavaş scroll için)
+const easeInOutCubic = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState("menu");
 
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+  // Custom scroll animasyonu
+  const scrollToSection = (sectionId: string, duration = 800) => {
+    const element = document.getElementById(sectionId);
+    if (!element) return;
+
+    const headerEl = document.getElementById("site-header");
+    const headerOffset = headerEl?.getBoundingClientRect().height ?? 205;
+
+    const startY = window.scrollY;
+    const elementTop = element.getBoundingClientRect().top + window.scrollY;
+    const targetY = elementTop - headerOffset;
+
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeInOutCubic(progress);
+
+      window.scrollTo(0, startY + (targetY - startY) * eased);
+
+      if (progress < 1) requestAnimationFrame(animate);
     };
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
+    requestAnimationFrame(animate);
+    // URL hash güncelle
+    window.history.pushState(null, "", `#${sectionId}`);
+  };
 
-    return () => window.removeEventListener("resize", checkMobile);
+  // URL hash yakala
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) scrollToSection(hash, 900);
+    };
+    if (window.location.hash) handleHashChange();
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  const nextImage = () => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prevIndex) =>
-      prevIndex === 0 ? heroImages.length - 1 : prevIndex - 1
-    );
-  };
-
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
-  };
-
+  // Arama + filtreleme
   const filteredCategories =
     selectedCategory === "all"
       ? menuData
@@ -203,7 +207,6 @@ export default function MenuPage() {
 
   const searchInCategories = (categories: typeof menuData) => {
     if (!searchTerm) return categories;
-
     return categories
       .map((category) => ({
         ...category,
@@ -222,6 +225,7 @@ export default function MenuPage() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
       <Header />
       <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 mt-40">
+        {/* Başlık */}
         <motion.div
           className="text-center mb-8 sm:mb-12"
           initial={{ opacity: 0, y: 30 }}
@@ -236,7 +240,7 @@ export default function MenuPage() {
           </p>
         </motion.div>
 
-        {/* Search */}
+        {/* Arama */}
         <motion.div
           className="mb-6 sm:mb-8"
           initial={{ opacity: 0, y: 20 }}
@@ -254,106 +258,59 @@ export default function MenuPage() {
             />
           </div>
         </motion.div>
-        <Tabs defaultValue="menu">
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="mx-auto bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
             <div className="bg-transparent">
-              <TabsTrigger 
-                value="menu" 
+              <TabsTrigger
+                value="menu"
                 className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
               >
                 Menü
               </TabsTrigger>
-              <TabsTrigger 
-                value="advantage-menu" 
+              <TabsTrigger
+                value="advantage-menu"
                 className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
               >
-                Avantajlı menüler
+                Avantajlı Menüler
               </TabsTrigger>
             </div>
           </TabsList>
-          <TabsContent value="menu">
-            {/* Category Filter - Responsive */}
-            <motion.div
-              className=""
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.6 }}
-            >
-              <div className="p-2 max-w-[1200px] mx-auto">
-                <Tabs
-                  value={selectedCategory}
-                  onValueChange={setSelectedCategory}
-                  className="w-full flex flex-col items-center"
+
+          {/* AnimatePresence ile içerik */}
+          <div className="relative min-h-[400px] mt-6">
+            <AnimatePresence mode="wait">
+              {activeTab === "menu" && (
+                <motion.div
+                  key="menu"
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <TabsList className="max-w-[500px] my-10 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
-                    {isMobile ? (
-                      <>
-                        <Select
-                          onValueChange={setSelectedCategory}
-                          value={selectedCategory}
-                        >
-                          <SelectTrigger className="bg-gradient-to-r from-amber-50 to-orange-50 border-amber-300 hover:border-amber-400 focus:border-amber-500 text-amber-800 font-semibold shadow-md">
-                            <SelectValue placeholder="Kategori seçiniz" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-gradient-to-b from-amber-50 to-orange-50 border-amber-200 shadow-xl">
-                            <SelectGroup>
-                              <SelectItem 
-                                value="all" 
-                                className="hover:bg-amber-100 focus:bg-amber-200 text-amber-800 font-medium"
-                              >
-                                Tüm Yemekler
-                              </SelectItem>
-                              {menuData.map((category) => (
-                                <SelectItem
-                                  value={category.id}
-                                  key={category.id}
-                                  className="hover:bg-amber-100 focus:bg-amber-200 text-amber-800 font-medium"
-                                >
-                                  {category.name}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center">
-                        <Carousel
-                          className="max-w-[400px]"
-                          opts={{ align: "center" }}
-                        >
-                          <CarouselContent>
-                            <CarouselItem className="basis-auto">
-                              <TabsTrigger 
-                                value="all"
-                                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold text-amber-800 border border-amber-300 shadow-sm"
-                              >
-                                Tüm Yemekler
-                              </TabsTrigger>
-                            </CarouselItem>
-                            {menuData.map((category) => (
-                              <CarouselItem
-                                key={category.id}
-                                className="basis-auto"
-                              >
-                                <TabsTrigger 
-                                  value={category.id}
-                                  className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold text-amber-800 border border-amber-300 shadow-sm"
-                                >
-                                  {category.name}
-                                </TabsTrigger>
-                              </CarouselItem>
-                            ))}
-                          </CarouselContent>
-                          <CarouselNext className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 border-amber-400 shadow-lg" />
-                          <CarouselPrevious className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600 border-amber-400 shadow-lg" />
-                        </Carousel>
-                      </div>
-                    )}
-                  </TabsList>
-                  <TabsContent className="w-full" value={selectedCategory}>
+                  {/* Category Buttons */}
+                  <div className="px-2 py-5 max-w-11/12 md:max-w-[1200px] mx-auto flex flex-wrap items-center justify-center gap-2">
+                    {displayCategories.map((cat) => (
+                      <Button
+                        variant="outline"
+                        key={cat.id}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          scrollToSection(cat.id, 900); // easing scroll
+                        }}
+                        className="cursor-pointer hover:bg-amber-100 transition-colors"
+                      >
+                        {cat.name}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Category Sections */}
+                  <div className="p-2 max-w-[1200px] mx-auto">
                     {displayCategories.map((category, categoryIndex) => (
-                      <motion.div
+                      <motion.section
+                        id={category.id}
                         key={category.id}
                         className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-12"
                         initial={{ opacity: 0, y: 50 }}
@@ -365,6 +322,7 @@ export default function MenuPage() {
                         viewport={{ once: true }}
                         whileHover={{ y: -5 }}
                       >
+                        {/* Category Header */}
                         <div className="relative h-48 sm:h-64 overflow-hidden">
                           <motion.img
                             src={category.image || "/placeholder.svg"}
@@ -390,6 +348,7 @@ export default function MenuPage() {
                           </motion.div>
                         </div>
 
+                        {/* Items */}
                         <div className="p-6 sm:p-8">
                           <div className="grid gap-3 sm:gap-4">
                             {category.items.map((item, index) => (
@@ -449,98 +408,75 @@ export default function MenuPage() {
                             ))}
                           </div>
                         </div>
-                      </motion.div>
+                      </motion.section>
                     ))}
-
-                    {displayCategories.length === 0 && (
-                      <motion.div
-                        className="text-center py-12"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.6 }}
-                      >
-                        <motion.div
-                          className="text-6xl mb-4"
-                          animate={{ rotate: [0, 10, -10, 0] }}
-                          transition={{
-                            duration: 2,
-                            repeat: Number.POSITIVE_INFINITY,
-                          }}
-                        >
-                          🔍
-                        </motion.div>
-                        <p className="text-gray-500 text-lg mb-2">
-                          Aradığınız kriterlere uygun ürün bulunamadı.
-                        </p>
-                        <p className="text-gray-400 text-sm">
-                          Farklı anahtar kelimeler deneyin veya kategori
-                          filtrelerini değiştirin.
-                        </p>
-                      </motion.div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </motion.div>
-          </TabsContent>
-          <TabsContent value="advantage-menu">
-            <motion.div
-              className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              {heroImages.map((image, index) => (
-                <motion.div
-                  className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200"
-                  key={index}
-                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{
-                    duration: 0.6,
-                    delay: index * 0.1,
-                    type: "spring",
-                    stiffness: 100,
-                  }}
-                  whileHover={{
-                    y: -10,
-                    scale: 1.02,
-                    transition: { duration: 0.3 },
-                    boxShadow: "0 25px 50px -12px rgba(251, 191, 36, 0.25)",
-                  }}
-                  viewport={{ once: true }}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative overflow-hidden rounded-xl"
-                  >
-                    <Image
-                      src={image || "/placeholder.svg"}
-                      alt={`Menu ${index + 1}`}
-                      width={400}
-                      height={600}
-                      className="w-full h-auto object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                      priority={index === 0}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
-                  </motion.div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-800/80 to-transparent p-3">
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      whileHover={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-white text-center"
-                    >
-                      <p className="text-sm font-semibold">Özel Menü {index + 1}</p>
-                    </motion.div>
                   </div>
                 </motion.div>
-              ))}
-            </motion.div>
-          </TabsContent>
+              )}
+
+              {activeTab === "advantage-menu" && (
+                <motion.div
+                  key="advantage"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
+                >
+                  {heroImages.map((image, index) => (
+                    <motion.div
+                      className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200"
+                      key={index}
+                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{
+                        duration: 0.6,
+                        delay: index * 0.1,
+                        type: "spring",
+                        stiffness: 100,
+                      }}
+                      whileHover={{
+                        y: -10,
+                        scale: 1.02,
+                        transition: { duration: 0.3 },
+                        boxShadow: "0 25px 50px -12px rgba(251, 191, 36, 0.25)",
+                      }}
+                      viewport={{ once: true }}
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.3 }}
+                        className="relative overflow-hidden rounded-xl"
+                      >
+                        <Image
+                          src={image || "/placeholder.svg"}
+                          alt={`Menu ${index + 1}`}
+                          width={400}
+                          height={600}
+                          className="w-full h-auto object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                          priority={index === 0}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+                      </motion.div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-800/80 to-transparent p-3">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          whileHover={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-white text-center"
+                        >
+                          <p className="text-sm font-semibold">
+                            Özel Menü {index + 1}
+                          </p>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </Tabs>
       </div>
       <Footer />
