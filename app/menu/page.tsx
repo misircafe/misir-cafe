@@ -299,7 +299,7 @@ export default function MenuPage() {
                           e.preventDefault();
                           scrollToSection(cat.id, 900); // easing scroll
                         }}
-                        className="cursor-pointer hover:bg-amber-100 transition-colors"
+                        className="cursor-pointer hover:border-amber-400 transition-colors bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200"
                       >
                         {cat.name}
                       </Button>

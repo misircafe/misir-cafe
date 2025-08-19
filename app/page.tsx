@@ -287,35 +287,29 @@ export default function HomePage() {
 
           {/* İletişim Bilgileri - Harita Altında Tek Satırda */}
           <motion.div
-            className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center"
+            className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-4 text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <MapPin className="min-w-5 min-h-5" />
-              <span className="text-amber-100 text-sm sm:text-base">
+              <span className="text-amber-100">
                 Meşrutiyet, Karanfil Sk. No:34/A, 06420 Çankaya/Ankara
               </span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Phone className="w-5 h-5" />
-              <span className="text-amber-100 text-sm sm:text-base">
-                +90 216 555 0123
-              </span>
+              <span className="text-amber-100">+90 216 555 0123</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Mail className="w-5 h-5" />
-              <span className="text-amber-100 text-sm sm:text-base">
-                info@misircafe.com
-              </span>
+              <span className="text-amber-100">info@misircafe.com</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Clock className="w-5 h-5" />
-              <span className="text-amber-100 text-sm sm:text-base">
-                08:00 - 24:00
-              </span>
+              <span className="text-amber-100">08:00 - 24:00</span>
             </div>
           </motion.div>
         </div>
