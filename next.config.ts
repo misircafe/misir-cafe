@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     // Build sırasında TS hatalarını yok say
     ignoreBuildErrors: true,
   },
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

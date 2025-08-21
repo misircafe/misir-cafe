@@ -41,7 +41,7 @@ export default function Header() {
         )}
       >
         <div className="max-w-full lg:max-w-11/12 mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-32">
+          <div className="flex items-center justify-between h-32">
             {/* Logo */}
             <Link href="/" className="flex-shrink-0">
               <motion.h1
@@ -59,20 +59,25 @@ export default function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden md:flex items-center space-x-1 w-full justify-center">
               {navigation.map((item, index) => (
                 <motion.div
                   key={item.name}
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className={cn(
+                    "hover:scale-110 transition-all duration-300",
+                    item.href === pathname && "scale-110"
+                  )}
                 >
                   <Link
                     href={item.href}
                     className={cn(
                       "relative px-4 py-2 text-md font-medium transition-all duration-300 ease-out group",
-                      "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:bg-gradient-to-r after:from-amber-500 after:to-orange-500 after:transition-all after:duration-300 after:ease-out",
-                      "hover:after:w-full hover:after:left-0 hover:text-amber-700",
+                      "after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:bg-gradient-to-r after:from-amber-500 after:to-orange-500 after:transition-all",
+                      "after:duration-300 after:ease-out",
+                      "hover:after:w-full hover:after:left-0 hover:text-amber-700 hover:after:scale-110",
                       "text-black",
                       item.href === pathname
                         ? "after:w-full after:left-0 text-amber-700"

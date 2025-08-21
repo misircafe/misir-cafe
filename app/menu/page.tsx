@@ -150,16 +150,24 @@ const menuData = [
 ];
 
 // Easing fonksiyonumuz (yavaş-hızlı-yavaş scroll için)
-const easeInOutCubic = (t: number) =>
-  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const easeInOutCubic = (t: number) => 0.5 * (1 - Math.cos(Math.PI * t));
+
+// Görsel + açıklama + fiyat için veriler
+const advantageMenus = [
+  { image: "/special-menu.png", description: "Kola + Hamburger Menü", price: 120 },
+  { image: "/special-menu2.png", description: "Çay + Simit Menü", price: 45 },
+  { image: "/special-menu3.png", description: "Latte + Cheesecake Menü", price: 150 },
+  { image: "/special-menu4.png", description: "Waffle + Meşrubat Menü", price: 160 },
+  { image: "/special-menu5.png", description: "Cold Brew + Kurabiye Menü", price: 80 },
+];
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(menuData[0].id); // ilk kategori varsayılan
   const [activeTab, setActiveTab] = useState("menu");
 
   // Custom scroll animasyonu
-  const scrollToSection = (sectionId: string, duration = 800) => {
+  const scrollToSection = (sectionId: string, duration = 2000) => {
     const element = document.getElementById(sectionId);
     if (!element) return;
 
@@ -183,15 +191,18 @@ export default function MenuPage() {
     };
 
     requestAnimationFrame(animate);
-    // URL hash güncelle
-    window.history.pushState(null, "", `#${sectionId}`);
+    // URL hash kullanmıyoruz
+    // window.history.pushState(null, "", `#${sectionId}`);
   };
 
   // URL hash yakala
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
-      if (hash) scrollToSection(hash, 900);
+      if (hash) {
+        setSelectedCategory(hash); // sadece buton vurgusu için
+        scrollToSection(hash, 900); // içeriği filtrelemeden, oraya scroll et
+      }
     };
     if (window.location.hash) handleHashChange();
 
@@ -199,11 +210,38 @@ export default function MenuPage() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  // Arama + filtreleme
-  const filteredCategories =
-    selectedCategory === "all"
-      ? menuData
-      : menuData.filter((category) => category.id === selectedCategory);
+  // URL hash dinleme KALDIRILDI; yerine scroll tabanlı aktif kategori belirleme
+  useEffect(() => {
+    if (activeTab !== "menu") return;
+
+    const headerEl = document.getElementById("site-header");
+    const headerHeight = headerEl?.getBoundingClientRect().height ?? 205;
+
+    const handleScroll = () => {
+      let nearestId = menuData[0].id;
+      let minDelta = Number.POSITIVE_INFINITY;
+
+      for (const cat of menuData) {
+        const el = document.getElementById(cat.id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        // Header altına en yakın olanı seç (biraz offset veriyoruz)
+        const delta = Math.abs(rect.top - headerHeight - 20);
+        if (delta < minDelta) {
+          minDelta = delta;
+          nearestId = cat.id;
+        }
+      }
+
+      setSelectedCategory((prev) => (prev !== nearestId ? nearestId : prev));
+    };
+
+    // İlk yüklemede de doğru değeri ata
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [activeTab]);
 
   const searchInCategories = (categories: typeof menuData) => {
     if (!searchTerm) return categories;
@@ -219,7 +257,7 @@ export default function MenuPage() {
       .filter((category) => category.items.length > 0);
   };
 
-  const displayCategories = searchInCategories(filteredCategories);
+  const displayCategories = searchInCategories(menuData);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
@@ -261,17 +299,17 @@ export default function MenuPage() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mx-auto bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
-            <div className="bg-transparent">
+          <TabsList className="mx-auto w-10/12 md:w-5/12 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 shadow-lg">
+            <div className="grid grid-cols-2 w-full gap-2 bg-transparent">
               <TabsTrigger
                 value="menu"
-                className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
+                className="w-full justify-center cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
               >
                 Menü
               </TabsTrigger>
               <TabsTrigger
                 value="advantage-menu"
-                className="cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
+                className="w-full justify-center cursor-pointer data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white hover:bg-amber-200 transition-all duration-300 font-semibold"
               >
                 Avantajlı Menüler
               </TabsTrigger>
@@ -297,9 +335,14 @@ export default function MenuPage() {
                         key={cat.id}
                         onClick={(e) => {
                           e.preventDefault();
-                          scrollToSection(cat.id, 900); // easing scroll
+                          setSelectedCategory(cat.id); // vurguyu hemen güncelle
+                          scrollToSection(cat.id, 900); // yumuşak kaydır
                         }}
-                        className="cursor-pointer hover:border-amber-400 transition-colors bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200"
+                        className={`cursor-pointer transition-colors bg-gradient-to-r border ${
+                          selectedCategory === cat.id
+                            ? "from-amber-500 to-orange-500 text-white border-transparent hover:from-amber-600 hover:to-orange-600"
+                            : "from-amber-100 to-orange-100 border-amber-200 hover:border-amber-400"
+                        }`}
                       >
                         {cat.name}
                       </Button>
@@ -423,9 +466,9 @@ export default function MenuPage() {
                   transition={{ duration: 0.5 }}
                   className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
                 >
-                  {heroImages.map((image, index) => (
+                  {advantageMenus.map((menu, index) => (
                     <motion.div
-                      className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200"
+                      className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
                       key={index}
                       initial={{ opacity: 0, y: 50, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -443,33 +486,33 @@ export default function MenuPage() {
                       }}
                       viewport={{ once: true }}
                     >
+                      {/* Üstte ürün görseli */}
                       <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.3 }}
-                        className="relative overflow-hidden rounded-xl"
+                        whileHover={{ scale: 1.03 }}
+                        transition={{ duration: 0.25 }}
+                        className="relative overflow-hidden rounded-t-xl"
                       >
                         <Image
-                          src={image || "/placeholder.svg"}
-                          alt={`Menu ${index + 1}`}
-                          width={400}
-                          height={600}
-                          className="w-full h-auto object-cover"
+                          src={menu.image || "/placeholder.svg"}
+                          alt={menu.description}
+                          width={600}
+                          height={800}
+                          className="w-full h-56 sm:h-64 object-cover"
                           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
                           priority={index === 0}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-amber-900/20 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
                       </motion.div>
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-800/80 to-transparent p-3">
-                        <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          whileHover={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="text-white text-center"
-                        >
-                          <p className="text-sm font-semibold">
-                            Özel Menü {index + 1}
+
+                      {/* Altta açıklama ve sağda fiyat */}
+                      <div className="p-4 sm:p-5 bg-white border-t border-amber-200">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-amber-900 font-semibold leading-snug">
+                            {menu.description}
                           </p>
-                        </motion.div>
+                          <span className="text-amber-700 font-bold text-lg shrink-0">
+                            {menu.price}₺
+                          </span>
+                        </div>
                       </div>
                     </motion.div>
                   ))}

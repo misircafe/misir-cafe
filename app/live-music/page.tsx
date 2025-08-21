@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, Music } from "lucide-react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 const heroImages = [
   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
@@ -43,33 +45,6 @@ const musicEvents = [
     artist: "Mert Demir",
     image:
       "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=400&h=300&fit=crop",
-  },
-  {
-    id: 4,
-    date: "2024-01-22",
-    day: "Pazartesi",
-    time: "20:00",
-    artist: "Botanica Akustik",
-    image:
-      "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop",
-  },
-  {
-    id: 5,
-    date: "2024-01-24",
-    day: "Çarşamba",
-    time: "21:00",
-    artist: "Selin & Gitarı",
-    image:
-      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop",
-  },
-  {
-    id: 6,
-    date: "2024-01-26",
-    day: "Cuma",
-    time: "20:30",
-    artist: "World Music Collective",
-    image:
-      "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop",
   },
 ];
 
@@ -166,52 +141,61 @@ export default function LiveMusicPage() {
       <div ref={eventsRef} className="max-w-6xl mx-auto px-4 py-12">
         {/* Events Grid */}
         <motion.div
-          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {musicEvents.map((event, index) => (
-            <motion.div
-              key={event.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ y: -8, scale: 1.02 }}
-              className="h-full"
-            >
-              <Card className="bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg h-full">
-                <div className="relative">
-                  <img
-                    src={event.image}
-                    alt={event.artist}
-                    className="w-full h-48 object-cover rounded-t-lg transition-transform duration-300"
-                  />
-                </div>
+          {musicEvents.map((event, index) => {
+            const isLastOddItem =
+              musicEvents.length % 2 === 1 && index === musicEvents.length - 1;
 
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-amber-800 mb-1">
-                    {event.artist}
-                  </CardTitle>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-gray-600">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span className="text-sm">
-                        {formatDate(event.date)} - {event.day}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-gray-600">
-                      <Clock className="w-4 h-4 mr-2" />
-                      <span className="text-sm">{event.time}</span>
-                    </div>
+            return (
+              <motion.div
+                key={event.id}
+                className={cn(
+                  isLastOddItem &&
+                    "md:col-span-2 md:justify-self-center md:w-[calc((100%-1.5rem)/2)] lg:col-span-1 lg:w-auto"
+                )}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+              >
+                <Card className="bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden p-0">
+                  <div className="relative h-48 w-full">
+                    <Image
+                      src={event.image}
+                      alt={event.artist}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg text-amber-800 mb-1">
+                      {event.artist}
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="pb-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center text-gray-600">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        <span className="text-sm">
+                          {formatDate(event.date)} - {event.day}
+                        </span>
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <Clock className="w-4 h-4 mr-2" />
+                        <span className="text-sm">{event.time}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Bottom Info */}
