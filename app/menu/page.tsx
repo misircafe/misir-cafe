@@ -163,7 +163,7 @@ const advantageMenus = [
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(menuData[0].id); // ilk kategori varsayılan
+  const [selectedCategory, setSelectedCategory] = useState("all"); // "all" varsayılan olarak tüm menüyü göster
   const [activeTab, setActiveTab] = useState("menu");
 
   // Custom scroll animasyonu
@@ -210,38 +210,7 @@ export default function MenuPage() {
     return () => window.removeEventListener("hashchange", handleHashChange);
   }, []);
 
-  // URL hash dinleme KALDIRILDI; yerine scroll tabanlı aktif kategori belirleme
-  useEffect(() => {
-    if (activeTab !== "menu") return;
-
-    const headerEl = document.getElementById("site-header");
-    const headerHeight = headerEl?.getBoundingClientRect().height ?? 205;
-
-    const handleScroll = () => {
-      let nearestId = menuData[0].id;
-      let minDelta = Number.POSITIVE_INFINITY;
-
-      for (const cat of menuData) {
-        const el = document.getElementById(cat.id);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        // Header altına en yakın olanı seç (biraz offset veriyoruz)
-        const delta = Math.abs(rect.top - headerHeight - 20);
-        if (delta < minDelta) {
-          minDelta = delta;
-          nearestId = cat.id;
-        }
-      }
-
-      setSelectedCategory((prev) => (prev !== nearestId ? nearestId : prev));
-    };
-
-    // İlk yüklemede de doğru değeri ata
-    handleScroll();
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [activeTab]);
+  // Scroll tabanlı kategori belirleme kaldırıldı - artık manuel filtreleme yapıyoruz
 
   const searchInCategories = (categories: typeof menuData) => {
     if (!searchTerm) return categories;
@@ -257,7 +226,13 @@ export default function MenuPage() {
       .filter((category) => category.items.length > 0);
   };
 
-  const displayCategories = searchInCategories(menuData);
+  // Kategori filtreleme fonksiyonu
+  const filterByCategory = (categories: typeof menuData) => {
+    if (selectedCategory === "all") return categories;
+    return categories.filter((category) => category.id === selectedCategory);
+  };
+
+  const displayCategories = filterByCategory(searchInCategories(menuData));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
@@ -329,14 +304,30 @@ export default function MenuPage() {
                 >
                   {/* Category Buttons */}
                   <div className="px-2 py-5 max-w-11/12 md:max-w-[1200px] mx-auto flex flex-wrap items-center justify-center gap-2">
-                    {displayCategories.map((cat) => (
+                    {/* Tüm Menü Butonu */}
+                    <Button
+                      variant="outline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSelectedCategory("all");
+                      }}
+                      className={`cursor-pointer transition-colors bg-gradient-to-r border ${
+                        selectedCategory === "all"
+                          ? "from-amber-500 to-orange-500 text-white border-transparent hover:from-amber-600 hover:to-orange-600"
+                          : "from-amber-100 to-orange-100 border-amber-200 hover:border-amber-400"
+                      }`}
+                    >
+                      TÜM MENÜ
+                    </Button>
+                    
+                    {/* Kategori Butonları */}
+                    {menuData.map((cat) => (
                       <Button
                         variant="outline"
                         key={cat.id}
                         onClick={(e) => {
                           e.preventDefault();
-                          setSelectedCategory(cat.id); // vurguyu hemen güncelle
-                          scrollToSection(cat.id, 900); // yumuşak kaydır
+                          setSelectedCategory(cat.id);
                         }}
                         className={`cursor-pointer transition-colors bg-gradient-to-r border ${
                           selectedCategory === cat.id
@@ -415,7 +406,7 @@ export default function MenuPage() {
                                     <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
                                       {item.name}
                                     </h3>
-                                    {Math.random() > 0.7 && (
+                                    {(index === 0 || index === 2 || index === 4) && (
                                       <motion.div
                                         initial={{ scale: 0 }}
                                         whileInView={{ scale: 1 }}

@@ -19,7 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Footer from "@/components/footer";
 
-const heroImages = ["/background.jpg", "/background2.jpg"];
+// Video background için artık heroImages kullanmıyoruz
+// const heroImages = ["/background.jpg", "/background2.jpg"];
 
 const specialMenuItems = [
   {
@@ -75,15 +76,16 @@ const specialMenuItems = [
 ];
 
 export default function HomePage() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Video background için artık currentImageIndex kullanmıyoruz
+  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-    }, 5000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
+  //   }, 5000);
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   return (
     <div className="min-h-screen bg-white/50">
@@ -91,22 +93,16 @@ export default function HomePage() {
 
       <section className="relative min-h-[100vh] flex items-center justify-center px-4 overflow-hidden bg-gray-900">
         <div className="absolute inset-0">
-          {heroImages.map((image, index) => (
-            <motion.div
-              key={index}
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: `url('${image}')`,
-              }}
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: currentImageIndex === index ? 1 : 0,
-              }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
-            >
-              <div className="absolute inset-0 bg-black/50"></div>
-            </motion.div>
-          ))}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/bgvideo1.webm" type="video/webm" />
+          </video>
+          <div className="absolute inset-0 bg-black/60"></div>
         </div>
 
         <motion.div

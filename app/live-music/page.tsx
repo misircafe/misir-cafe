@@ -10,13 +10,14 @@ import Footer from "@/components/footer";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-const heroImages = [
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&h=600&fit=crop",
-  "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
-];
+// Video background için artık heroImages kullanmıyoruz
+// const heroImages = [
+//   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
+//   "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=800&h=600&fit=crop",
+//   "https://images.unsplash.com/photo-1511735111819-9a3f7709049c?w=800&h=600&fit=crop",
+//   "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=800&h=600&fit=crop",
+//   "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
+// ];
 
 const musicEvents = [
   {
@@ -49,15 +50,16 @@ const musicEvents = [
 ];
 
 export default function LiveMusicPage() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // Video background için artık currentImageIndex kullanmıyoruz
+  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const eventsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,22 +83,16 @@ export default function LiveMusicPage() {
 
       <section className="relative min-h-[100vh] flex items-center justify-center px-4 overflow-hidden bg-gray-900">
         <div className="absolute inset-0">
-          {heroImages.map((image, index) => (
-            <motion.div
-              key={index}
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: `url('${image}')`,
-              }}
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: currentImageIndex === index ? 1 : 0,
-              }}
-              transition={{ duration: 1.5, ease: "easeInOut" }}
-            >
-              <div className="absolute inset-0 bg-black/50"></div>
-            </motion.div>
-          ))}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/bgvideo2.webm" type="video/webm" />
+          </video>
+          <div className="absolute inset-0 bg-black/60"></div>
         </div>
 
         <motion.div
