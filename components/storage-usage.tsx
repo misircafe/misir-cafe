@@ -1,22 +1,29 @@
-import React from 'react'
-import { Card, CardContent } from './ui/card';
-import { motion } from 'framer-motion';
-import { Database } from 'lucide-react';
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "./ui/card";
+import { motion } from "framer-motion";
+import { Database } from "lucide-react";
+import { getImagesSize } from "@/utils/supabase/functions/images.functions";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function StorageUsage() {
+  const [bucketSize, setBucketSize] = useState<number | null>(null);
+  const limit = 1024; // MB
 
-    const storageData = {
-    used: 2.3, // GB
-    total: 10, // GB
-    breakdown: {
-      images: 1.8,
-      documents: 0.3,
-      other: 0.2,
-    },
-  };
+  useEffect(() => {
+    const fetchImagesSize = async () => {
+      const sizeBytes = await getImagesSize();
+      const sizeMB = Number(sizeBytes / (1024 * 1024)); // MB
+      setBucketSize(sizeMB);
+    };
+    fetchImagesSize();
+  }, []);
 
-  const usagePercentage = (storageData.used / storageData.total) * 100;
-  const getUsageColor = (percentage) => {
+  const usagePercentage =
+    bucketSize !== null ? Math.min((bucketSize / limit) * 100, 100) : 0;
+
+  const getUsageColor = (percentage: number) => {
     if (percentage < 50) return "from-green-500 to-emerald-500";
     if (percentage < 80) return "from-yellow-500 to-orange-500";
     return "from-red-500 to-pink-500";
@@ -33,7 +40,13 @@ function StorageUsage() {
             </h3>
           </div>
           <div className="text-sm text-gray-600">
-            {storageData.used} GB / {storageData.total} GB
+            {bucketSize !== null ? (
+              <>
+                {bucketSize.toFixed(2)} MB / {limit} MB
+              </>
+            ) : (
+              <Skeleton className="h-4 w-20" />
+            )}
           </div>
         </div>
 
@@ -50,23 +63,17 @@ function StorageUsage() {
         </div>
 
         {/* Storage Breakdown */}
-        <div className="grid grid-cols-3 gap-4 text-sm">
+        <div className="gap-4 text-sm flex items-center justify-center">
           <div className="text-center">
             <div className="w-3 h-3 bg-blue-500 rounded-full mx-auto mb-1"></div>
             <div className="text-gray-600">Resimler</div>
-            <div className="font-medium">{storageData.breakdown.images} GB</div>
-          </div>
-          <div className="text-center">
-            <div className="w-3 h-3 bg-purple-500 rounded-full mx-auto mb-1"></div>
-            <div className="text-gray-600">Dökümanlar</div>
             <div className="font-medium">
-              {storageData.breakdown.documents} GB
+              {bucketSize !== null ? (
+                bucketSize.toFixed(2) + " MB"
+              ) : (
+                <Skeleton className="h-4 w-12" />
+              )}
             </div>
-          </div>
-          <div className="text-center">
-            <div className="w-3 h-3 bg-gray-500 rounded-full mx-auto mb-1"></div>
-            <div className="text-gray-600">Diğer</div>
-            <div className="font-medium">{storageData.breakdown.other} GB</div>
           </div>
         </div>
       </CardContent>
@@ -74,4 +81,4 @@ function StorageUsage() {
   );
 }
 
-export default StorageUsage
+export default StorageUsage;

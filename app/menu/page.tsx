@@ -9,230 +9,103 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Footer from "@/components/footer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  getMenu,
+  getSpecialMenus,
+} from "@/utils/supabase/functions/ui.functions";
+import { toast } from "sonner";
+import { MenuCategory } from "@/types/ui.types";
+import { SpecialMenu } from "@/types/special-menu.type";
 
-const heroImages = [
-  "/special-menu.png",
-  "/special-menu2.png",
-  "/special-menu3.png",
-  "/special-menu4.png",
-  "/special-menu5.png",
-];
-
-// Dummy data (senin menuData burada)
-const menuData = [
-  {
-    id: "kahveler",
-    name: "ESPRESSO BAR",
-    subtitle: "Özenle hazırlanmış kahve çeşitlerimiz",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image.png-lNnlRVFhR8qrmY94MdMYNFN4OxAHYD.jpeg",
-    items: [
-      { name: "Espresso", price: 16, description: "Klasik İtalyan espresso" },
-      {
-        name: "Macchiato",
-        price: 18,
-        description: "Espresso üzerine süt köpüğü",
-      },
-      {
-        name: "Americano",
-        price: 18,
-        description: "Sıcak su ile seyreltilmiş espresso",
-      },
-      {
-        name: "Cappuccino",
-        price: 20,
-        description: "Espresso, süt köpüğü ve sıcak süt",
-      },
-      {
-        name: "Cafe Latte",
-        price: 22,
-        description: "Karamel, fındık, çikolata seçenekleri",
-      },
-      { name: "Mocha", price: 24, description: "Çikolata, beyaz çikolata" },
-      {
-        name: "Filtre Kahve",
-        price: 20,
-        description:
-          "Vanilya, fındık, çikolata, kolombiya, brezilya, kenya, etiyopya, irish cream",
-      },
-    ],
-  },
-  {
-    id: "soguk-kahveler",
-    name: "SOĞUK KAHVELER",
-    subtitle: "Serinletici soğuk kahve çeşitleri",
-    image: "/iced-cold-brew.png",
-    items: [
-      { name: "Ice Americano", price: 22, description: "Buzlu americano" },
-      { name: "Ice Latte", price: 24, description: "Buzlu latte" },
-      { name: "Ice Mocha", price: 26, description: "Buzlu mocha" },
-      {
-        name: "Ice Mocha Caramelatte",
-        price: 28,
-        description: "Karamelli buzlu mocha",
-      },
-      {
-        name: "White Ice Mocha",
-        price: 26,
-        description: "Beyaz çikolatalı buzlu mocha",
-      },
-      { name: "Cold Brew", price: 25, description: "Soğuk demleme kahve" },
-    ],
-  },
-  {
-    id: "tatli-menu",
-    name: "TATLI MENÜ",
-    subtitle: "Ev yapımı tatlı lezzetlerimiz",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image.png-TsizblsUNFIeHRsYHGbJEWTH31laut.jpeg",
-    items: [
-      {
-        name: "Waffle",
-        price: 35,
-        description: "Muz, kivi, çilek, dondurma ve soslar ile sunulur",
-      },
-      { name: "Cheesecake", price: 32, description: "Frambuazlı ve Limonlu" },
-      {
-        name: "Tiramisu",
-        price: 32,
-        description: "Geleneksel İtalyan tatlısı",
-      },
-      { name: "Profiterol", price: 28, description: "Çikolata soslu" },
-      { name: "Yaş Pasta", price: 35, description: "Frambuazlı ve Çikolatalı" },
-      { name: "Kızarmış Dondurma", price: 38, description: "Özel sunumlu" },
-      { name: "Kuruyemiş Tabağı", price: 45, description: "Karışık kuruyemiş" },
-      { name: "Meyve Tabağı", price: 42, description: "Mevsim meyveleri" },
-      {
-        name: "Serpme Meyve Tabağı",
-        price: 55,
-        description: "Mevsim meyveleri - büyük tabak",
-      },
-    ],
-  },
-  {
-    id: "nargile",
-    name: "NARGİLE MENÜSÜ",
-    subtitle: "Kaliteli nargile çeşitlerimiz",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image.png-JWzKaQFWcNDsaSRckFRI5sExaxkMW7.jpeg",
-    items: [
-      {
-        name: "Classic Nargile",
-        price: null,
-        description: "Geleneksel nargile",
-      },
-      {
-        name: "Tatlı Kız - Sweet girl",
-        price: null,
-        description: "Tatlı aromalı",
-      },
-      {
-        name: "Ankara Akşamı - Ankara Evening",
-        price: null,
-        description: "Özel karışım",
-      },
-      { name: "Jibiar", price: null, description: "Premium marka" },
-      { name: "Dejavu", price: 40, description: "Özel karışım" },
-      { name: "Marilyn Monroe", price: null, description: "Özel aroma" },
-      { name: "Elma - Apple", price: null, description: "Elma aromalı" },
-      {
-        name: "Çift Elma - Two Apple",
-        price: null,
-        description: "Çift elma aromalı",
-      },
-      { name: "Kavun - Melon", price: null, description: "Kavun aromalı" },
-      { name: "Cappuccino", price: null, description: "Kahve aromalı" },
-      { name: "Çilek - Strawberry", price: null, description: "Çilek aromalı" },
-      { name: "Şeftali - Peach", price: null, description: "Şeftali aromalı" },
-      { name: "Portakal - Orange", price: 40, description: "Portakal aromalı" },
-    ],
-  },
-];
-
-// Easing fonksiyonumuz (yavaş-hızlı-yavaş scroll için)
-const easeInOutCubic = (t: number) => 0.5 * (1 - Math.cos(Math.PI * t));
-
-// Görsel + açıklama + fiyat için veriler
 const advantageMenus = [
-  { image: "/special-menu.png", description: "Kola + Hamburger Menü", price: 120 },
+  {
+    image: "/special-menu.png",
+    description: "Kola + Hamburger Menü",
+    price: 120,
+  },
   { image: "/special-menu2.png", description: "Çay + Simit Menü", price: 45 },
-  { image: "/special-menu3.png", description: "Latte + Cheesecake Menü", price: 150 },
-  { image: "/special-menu4.png", description: "Waffle + Meşrubat Menü", price: 160 },
-  { image: "/special-menu5.png", description: "Cold Brew + Kurabiye Menü", price: 80 },
+  {
+    image: "/special-menu3.png",
+    description: "Latte + Cheesecake Menü",
+    price: 150,
+  },
+  {
+    image: "/special-menu4.png",
+    description: "Waffle + Meşrubat Menü",
+    price: 160,
+  },
+  {
+    image: "/special-menu5.png",
+    description: "Cold Brew + Kurabiye Menü",
+    price: 80,
+  },
 ];
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all"); // "all" varsayılan olarak tüm menüyü göster
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState("menu");
+  const [menu, setMenu] = useState<MenuCategory[]>([]);
+  const [specialMenu, setSpecialMenu] = useState<SpecialMenu[]>([]);
 
-  // Custom scroll animasyonu
-  const scrollToSection = (sectionId: string, duration = 2000) => {
-    const element = document.getElementById(sectionId);
-    if (!element) return;
-
-    const headerEl = document.getElementById("site-header");
-    const headerOffset = headerEl?.getBoundingClientRect().height ?? 205;
-
-    const startY = window.scrollY;
-    const elementTop = element.getBoundingClientRect().top + window.scrollY;
-    const targetY = elementTop - headerOffset;
-
-    const startTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = easeInOutCubic(progress);
-
-      window.scrollTo(0, startY + (targetY - startY) * eased);
-
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-
-    requestAnimationFrame(animate);
-    // URL hash kullanmıyoruz
-    // window.history.pushState(null, "", `#${sectionId}`);
-  };
-
-  // URL hash yakala
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1);
-      if (hash) {
-        setSelectedCategory(hash); // sadece buton vurgusu için
-        scrollToSection(hash, 900); // içeriği filtrelemeden, oraya scroll et
+    const fetchMenu = async () => {
+      try {
+        const result = await getMenu();
+        if (!result) {
+          toast.error("Menü alınamadı");
+          return;
+        }
+        setMenu(result);
+      } catch (error) {
+        toast.error("Menü alınamadı");
       }
     };
-    if (window.location.hash) handleHashChange();
 
-    window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    const fetchSpecialMenu = async () => {
+      try {
+        const result = await getSpecialMenus();
+        if (!result) {
+          toast.error("Menü alınamadı");
+          return;
+        }
+        setSpecialMenu(result);
+      } catch (error) {
+        toast.error("Menü alınamadı");
+      }
+    };
+
+    fetchMenu();
+    fetchSpecialMenu();
   }, []);
 
-  // Scroll tabanlı kategori belirleme kaldırıldı - artık manuel filtreleme yapıyoruz
+  if (!menu || menu.length === 0 || !specialMenu || specialMenu.length === 0)
+    return null;
 
-  const searchInCategories = (categories: typeof menuData) => {
-    if (!searchTerm) return categories;
-    return categories
-      .map((category) => ({
-        ...category,
-        items: category.items.filter(
+  // ✅ Arama
+  const searchInCategories = (menus: MenuCategory[]) => {
+    if (!searchTerm.trim()) return menus;
+
+    return menus
+      .map((cat) => ({
+        ...cat,
+        items: cat.items.filter(
           (item) =>
             item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.description.toLowerCase().includes(searchTerm.toLowerCase())
         ),
       }))
-      .filter((category) => category.items.length > 0);
+      .filter((cat) => cat.items.length > 0);
   };
 
-  // Kategori filtreleme fonksiyonu
-  const filterByCategory = (categories: typeof menuData) => {
-    if (selectedCategory === "all") return categories;
-    return categories.filter((category) => category.id === selectedCategory);
+  // ✅ Kategori filtreleme
+  const filterByCategory = (menus: MenuCategory[]) => {
+    if (selectedCategory === "all") return menus;
+    return menus.filter((cat) => cat.id === selectedCategory);
   };
 
-  const displayCategories = filterByCategory(searchInCategories(menuData));
+  // ✅ Gösterilecek kategoriler
+  const displayCategories = filterByCategory(searchInCategories(menu));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50">
@@ -254,23 +127,25 @@ export default function MenuPage() {
         </motion.div>
 
         {/* Arama */}
-        <motion.div
-          className="mb-6 sm:mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              type="text"
-              placeholder="Menüde ara..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/90 backdrop-blur-sm border-amber-200 focus:border-amber-400 h-12"
-            />
-          </div>
-        </motion.div>
+        {activeTab === "menu" && (
+          <motion.div
+            className="mb-6 sm:mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <div className="relative max-w-md mx-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Input
+                type="text"
+                placeholder="Menüde ara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/90 backdrop-blur-sm border-amber-200 focus:border-amber-400 h-12"
+              />
+            </div>
+          </motion.div>
+        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -291,7 +166,7 @@ export default function MenuPage() {
             </div>
           </TabsList>
 
-          {/* AnimatePresence ile içerik */}
+          {/* AnimatePresence */}
           <div className="relative min-h-[400px] mt-6">
             <AnimatePresence mode="wait">
               {activeTab === "menu" && (
@@ -304,38 +179,29 @@ export default function MenuPage() {
                 >
                   {/* Category Buttons */}
                   <div className="px-2 py-5 max-w-11/12 md:max-w-[1200px] mx-auto flex flex-wrap items-center justify-center gap-2">
-                    {/* Tüm Menü Butonu */}
                     <Button
                       variant="outline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSelectedCategory("all");
-                      }}
+                      onClick={() => setSelectedCategory("all")}
                       className={`cursor-pointer transition-colors bg-gradient-to-r border ${
                         selectedCategory === "all"
-                          ? "from-amber-500 to-orange-500 text-white border-transparent hover:from-amber-600 hover:to-orange-600"
+                          ? "from-amber-500 to-orange-500 text-white border-transparent"
                           : "from-amber-100 to-orange-100 border-amber-200 hover:border-amber-400"
                       }`}
                     >
                       TÜM MENÜ
                     </Button>
-                    
-                    {/* Kategori Butonları */}
-                    {menuData.map((cat) => (
+                    {menu.map((cat) => (
                       <Button
                         variant="outline"
                         key={cat.id}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setSelectedCategory(cat.id);
-                        }}
+                        onClick={() => setSelectedCategory(cat.id)}
                         className={`cursor-pointer transition-colors bg-gradient-to-r border ${
                           selectedCategory === cat.id
-                            ? "from-amber-500 to-orange-500 text-white border-transparent hover:from-amber-600 hover:to-orange-600"
+                            ? "from-amber-500 to-orange-500 text-white border-transparent"
                             : "from-amber-100 to-orange-100 border-amber-200 hover:border-amber-400"
                         }`}
                       >
-                        {cat.name}
+                        {cat.title.toUpperCase()}
                       </Button>
                     ))}
                   </div>
@@ -343,7 +209,7 @@ export default function MenuPage() {
                   {/* Category Sections */}
                   <div className="p-2 max-w-[1200px] mx-auto">
                     {displayCategories.map((category, categoryIndex) => (
-                      <motion.section
+                      <motion.div
                         id={category.id}
                         key={category.id}
                         className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden mb-12"
@@ -359,8 +225,8 @@ export default function MenuPage() {
                         {/* Category Header */}
                         <div className="relative h-48 sm:h-64 overflow-hidden">
                           <motion.img
-                            src={category.image || "/placeholder.svg"}
-                            alt={category.name}
+                            src={category.image_url || "/placeholder.svg"}
+                            alt={category.title}
                             className="w-full h-full object-cover"
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.6 }}
@@ -374,10 +240,10 @@ export default function MenuPage() {
                             viewport={{ once: true }}
                           >
                             <h2 className="text-2xl sm:text-3xl font-bold mb-2">
-                              {category.name}
+                              {category.title}
                             </h2>
                             <p className="text-sm sm:text-base opacity-90">
-                              {category.subtitle}
+                              {category.description}
                             </p>
                           </motion.div>
                         </div>
@@ -387,7 +253,7 @@ export default function MenuPage() {
                           <div className="grid gap-3 sm:gap-4">
                             {category.items.map((item, index) => (
                               <motion.div
-                                key={index}
+                                key={item.id}
                                 className="flex justify-between items-start py-3 border-b border-amber-100 last:border-b-0"
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -406,22 +272,11 @@ export default function MenuPage() {
                                     <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
                                       {item.name}
                                     </h3>
-                                    {(index === 0 || index === 2 || index === 4) && (
-                                      <motion.div
-                                        initial={{ scale: 0 }}
-                                        whileInView={{ scale: 1 }}
-                                        transition={{
-                                          type: "spring",
-                                          stiffness: 500,
-                                          delay: index * 0.1,
-                                        }}
-                                        viewport={{ once: true }}
-                                      >
-                                        <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-2 py-1">
-                                          <Star className="w-3 h-3 mr-1" />
-                                          Popüler
-                                        </Badge>
-                                      </motion.div>
+                                    {item.is_popular && (
+                                      <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-2 py-1 flex items-center">
+                                        <Star className="w-3 h-3 mr-1" />
+                                        Popüler
+                                      </Badge>
                                     )}
                                   </div>
                                   <p className="text-gray-600 text-sm">
@@ -442,12 +297,13 @@ export default function MenuPage() {
                             ))}
                           </div>
                         </div>
-                      </motion.section>
+                      </motion.div>
                     ))}
                   </div>
                 </motion.div>
               )}
 
+              {/* Avantajlı Menüler */}
               {activeTab === "advantage-menu" && (
                 <motion.div
                   key="advantage"
@@ -457,7 +313,7 @@ export default function MenuPage() {
                   transition={{ duration: 0.5 }}
                   className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
                 >
-                  {advantageMenus.map((menu, index) => (
+                  {specialMenu.map((menu, index) => (
                     <motion.div
                       className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
                       key={index}
@@ -477,15 +333,14 @@ export default function MenuPage() {
                       }}
                       viewport={{ once: true }}
                     >
-                      {/* Üstte ürün görseli */}
                       <motion.div
                         whileHover={{ scale: 1.03 }}
                         transition={{ duration: 0.25 }}
                         className="relative overflow-hidden rounded-t-xl"
                       >
                         <Image
-                          src={menu.image || "/placeholder.svg"}
-                          alt={menu.description}
+                          src={menu.image_url || "/placeholder.svg"}
+                          alt={menu.name}
                           width={600}
                           height={800}
                           className="w-full h-56 sm:h-64 object-cover"
@@ -493,12 +348,10 @@ export default function MenuPage() {
                           priority={index === 0}
                         />
                       </motion.div>
-
-                      {/* Altta açıklama ve sağda fiyat */}
                       <div className="p-4 sm:p-5 bg-white border-t border-amber-200">
                         <div className="flex items-start justify-between gap-3">
                           <p className="text-amber-900 font-semibold leading-snug">
-                            {menu.description}
+                            {menu.name}
                           </p>
                           <span className="text-amber-700 font-bold text-lg shrink-0">
                             {menu.price}₺

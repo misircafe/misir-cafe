@@ -1,27 +1,33 @@
-"use client"
+"use client";
 
 // React ve gerekli UI component'leri import ediyoruz
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { z } from 'zod'; // Form validasyonu için Zod kütüphanesi
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react'; // İkonlar için Lucide React
-import { loginUser } from '@/utils/supabase/client'; // Supabase authentication fonksiyonu
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { z } from "zod"; // Form validasyonu için Zod kütüphanesi
+import { Mail, Lock, Eye, EyeOff } from "lucide-react"; // İkonlar için Lucide React
+import { loginUser } from "@/utils/supabase/functions/auth.functions";
 
 /**
  * Zod validation schema - Form verilerinin doğrulanması için kullanılır
  * Email: Geçerli email formatı kontrolü
  * Password: Minimum 6 karakter kontrolü
- * 
+ *
  * Gelecekteki geliştirmeler için:
  * - Şifre karmaşıklığı kuralları eklenebilir (büyük harf, sayı, özel karakter)
  * - Email domain kısıtlamaları eklenebilir
  * - Captcha doğrulaması eklenebilir
  */
 const loginSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır')
+  email: z.string().email("Geçerli bir e-posta adresi giriniz"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
 });
 
 // Zod schema'dan TypeScript tipini çıkarıyoruz
@@ -30,7 +36,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 /**
  * LoginForm component'inin props interface'i
  * onLogin: Opsiyonel login callback fonksiyonu
- * 
+ *
  * Gelecekteki geliştirmeler için eklenebilecek props:
  * - theme?: 'light' | 'dark' - Tema seçimi
  * - redirectUrl?: string - Başarılı girişten sonra yönlendirilecek URL
@@ -44,14 +50,14 @@ interface LoginFormProps {
 
 /**
  * LoginForm Component - Kullanıcı giriş formu
- * 
+ *
  * Bu component şu özellikleri sağlar:
  * - Zod ile form validasyonu
  * - Responsive tasarım
  * - Şifre göster/gizle özelliği
  * - Loading durumu yönetimi
  * - Gerçek zamanlı hata mesajları
- * 
+ *
  * Gelecekteki geliştirmeler için:
  * - Remember me checkbox eklenebilir
  * - Biometric authentication (Touch ID, Face ID) desteği
@@ -62,16 +68,16 @@ interface LoginFormProps {
 export function LoginForm({ onLogin }: LoginFormProps) {
   // Form verilerini tutan state - email ve password alanları
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
-  
+
   // Validasyon hatalarını tutan state - field adı -> hata mesajı mapping
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Form submit edilirken loading durumunu kontrol eden state
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Şifre alanının görünürlüğünü kontrol eden state
   const [showPassword, setShowPassword] = useState(false);
 
@@ -79,7 +85,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
    * Input değişikliklerini handle eden fonksiyon
    * @param field - Değişen form alanının adı (email veya password)
    * @param value - Yeni değer
-   * 
+   *
    * Gelecekteki geliştirmeler için:
    * - Debounced validation eklenebilir (kullanıcı yazmayı bıraktıktan sonra validate et)
    * - Auto-complete önerileri eklenebilir
@@ -87,12 +93,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
    */
   const handleInputChange = (field: keyof LoginFormData, value: string) => {
     // Form state'ini güncelle
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Kullanıcı yazmaya başladığında ilgili alanın hatasını temizle
     // Bu, gerçek zamanlı kullanıcı deneyimi sağlar
     if (errors[field]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -103,7 +109,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   /**
    * Form submit işlemini handle eden async fonksiyon
    * @param e - React form event
-   * 
+   *
    * İşlem adımları:
    * 1. Default form submit davranışını engelle
    * 2. Loading durumunu aktif et
@@ -112,7 +118,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
    * 5. Başarılıysa onLogin callback'ini çağır
    * 6. Hata varsa kullanıcıya göster
    * 7. Loading durumunu kapat
-   * 
+   *
    * Gelecekteki geliştirmeler için:
    * - Retry mekanizması eklenebilir
    * - Analytics tracking eklenebilir (login attempt, success/failure)
@@ -123,18 +129,18 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     // Sayfanın yeniden yüklenmesini engelle
     e.preventDefault();
-    
+
     // Loading durumunu başlat
     setIsLoading(true);
-    
+
     try {
       // Zod schema ile form verilerini validate et
       // Bu adım client-side validation sağlar
       loginSchema.parse(formData);
-      
+
       // Validation başarılıysa hataları temizle
       setErrors({});
-      
+
       // Parent component'ten gelen onLogin callback'ini çağır
       // Bu genellikle Supabase auth veya başka bir auth service ile giriş yapar
       if (onLogin) {
@@ -142,12 +148,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       } else {
         // Supabase ile gerçek authentication işlemi
         await loginUser(formData.email, formData.password);
-        
+
         // Başarılı girişten sonra sayfayı yeniden yükle
         // Bu sayede session kontrolü tekrar yapılacak ve admin paneli açılacak
         window.location.reload();
       }
-      
     } catch (error) {
       // Zod validation hatalarını yakala ve kullanıcı dostu mesajlara çevir
       if (error instanceof z.ZodError) {
@@ -181,7 +186,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             Yönetici Paneli Girişi
           </CardDescription>
         </CardHeader>
-        
+
         {/* Card Content - Form alanları */}
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -194,9 +199,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                   type="email"
                   placeholder="E-posta adresiniz"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
                   className={`pl-10 border-amber-200 focus:border-amber-400 focus:ring-amber-400 ${
-                    errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                    errors.email
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : ""
                   }`}
                   disabled={isLoading}
                 />
@@ -216,12 +223,16 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 {/* Lock ikonu - Sol tarafta konumlandırılmış */}
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-amber-500" />
                 <Input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Şifreniz"
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                   className={`pl-10 pr-10 border-amber-200 focus:border-amber-400 focus:ring-amber-400 ${
-                    errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+                    errors.password
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      : ""
                   }`}
                   disabled={isLoading}
                 />
@@ -232,7 +243,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                   className="absolute right-3 top-3 text-amber-500 hover:text-amber-600 transition-colors"
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               {/* Password validation error message */}
@@ -258,7 +273,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 </div>
               ) : (
                 // Normal durum - Sadece metin
-                'Giriş Yap'
+                "Giriş Yap"
               )}
             </Button>
           </form>
