@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   MapPin,
   Phone,
@@ -15,12 +14,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Header from "@/components/header";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import Footer from "@/components/footer";
-
-// Video background için artık heroImages kullanmıyoruz
-// const heroImages = ["/background.jpg", "/background2.jpg"];
+import { SpecialMenu } from "@/types/special-menu.type";
+import { getSpecialMenus } from "@/utils/supabase/functions/ui.functions";
+import { toast } from "sonner";
 
 const specialMenuItems = [
   {
@@ -76,16 +75,23 @@ const specialMenuItems = [
 ];
 
 export default function HomePage() {
-  // Video background için artık currentImageIndex kullanmıyoruz
-  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [specialMenu, setSpecialMenu] = useState<SpecialMenu[]>([]);
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-  //   }, 5000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
+  useEffect(() => {
+    const getSpecialMenu = async () => {
+      try {
+        const result = await getSpecialMenus();
+        if (!result) {
+          toast.error("Menü alınamadı");
+          return;
+        }
+        setSpecialMenu(result);
+      } catch (error) {
+        toast.error("Menü alınamadı");
+      }
+    };
+    getSpecialMenu();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white/50">
@@ -127,15 +133,6 @@ export default function HomePage() {
           >
             Piramidin gölgesinde müzik ve nargilenin büyülü dansı, kahvenin
             sıcaklığında buluşan ruhlar
-            {/*  Antik piramitlerin fısıltıları eşliğinde, nargile dumanının çizdiği hikayeler ve kahvenin sonsuz yolculuğu
-             Zamansız piramitlerin enerjisiyle, müziğin ritmi ve nargilenin huzuru kahve aromasında birleşiyor
-             Çöl rüzgarının getirdiği melodiler, piramitlerin sırları ve nargilenin mistik dumanında saklı lezzetler
-             Piramidin sessizliğinde yankılanan müzik, nargilenin sıcak nefesi ve kahvenin kalbimizi ısıtan hikayesi
-             Firavunların topraklarında yankılanan ezgiler, nargilenin kadim ritüeli ve kahvenin efsanevi aroması
-             Nil'in sessiz akışı gibi akan müzik, nargilenin huzur veren dumanı ve kahvenin ruhsal yolculuğu
-             Sfenksin bilmecelerinden müziğin cevaplarına, nargilenin yolculuğundan kahvenin keşfine uzanan macera
-             Kralların saraylarından gelen melodiler, nargilenin asil dumanı ve kahvenin aristokrat lezzeti
-             Piramitlerin altında kurulan dostluklar, nargilenin paylaşılan anları ve kahvenin birleştirici gücü */}
           </motion.p>
           <motion.div
             className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
@@ -170,7 +167,7 @@ export default function HomePage() {
                 className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 px-4 sm:px-6 py-3 bg-white/5 backdrop-blur-sm flex items-center gap-2 transition-all duration-300"
               >
                 <Link
-                  href="https://instagram.com/misircafe"
+                  href="https://www.instagram.com/misircafe/?igsh=eTl5NjFwZ2xnMzIw"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2"
@@ -202,38 +199,43 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="relative">
+          <div className="relative overflow-hidden">
             <motion.div
               className="flex gap-8"
-              animate={{ x: [0, -(280 * specialMenuItems.length)] }}
+              animate={{ x: ["0%", "-100%"] }}
               transition={{
-                duration: 20,
+                duration: 30, // hızını ayarlayabilirsin
                 repeat: Infinity,
                 ease: "linear",
-                repeatType: "loop",
               }}
-              whileHover={{ animationPlayState: "paused" }}
             >
-              {[...Array(4)].flatMap((_, setIndex) =>
-                specialMenuItems.map((item, itemIndex) => {
-                  return (
-                    <motion.div
-                      key={`${setIndex}-${item.id}`}
-                      whileHover={{ y: -10, scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <div className="bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg flex-shrink-0 rounded-2xl overflow-hidden w-64 h-64">
-                        <Image
-                          alt={item.description}
-                          src={item.image}
-                          width={256}
-                          height={256}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </motion.div>
-                  );
-                })
+              {[...specialMenu, ...specialMenu, ...specialMenu].map(
+                (item, index) => (
+                  <motion.div
+                    key={`${item.id}-${index}`}
+                    whileHover={{ y: -10, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="flex-shrink-0 border-amber-200 border-2 rounded-2xl"
+                  >
+                    <div className="bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg rounded-t-2xl overflow-hidden w-64 h-64">
+                      <Image
+                        alt={item.name}
+                        src={item.image_url}
+                        width={256}
+                        height={256}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="p-4 w-fit max-w-[256px] flex justify-between">
+                      <p className="text-amber-900 font-semibold max-w-8/12 leading-snug">
+                        {item.name}
+                      </p>
+                      <span className="text-amber-700 font-bold text-lg shrink-0">
+                        {item.price}₺
+                      </span>
+                    </div>
+                  </motion.div>
+                )
               )}
             </motion.div>
           </div>

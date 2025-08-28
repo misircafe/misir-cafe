@@ -251,50 +251,52 @@ export default function MenuPage() {
                         {/* Items */}
                         <div className="p-6 sm:p-8">
                           <div className="grid gap-3 sm:gap-4">
-                            {category.items.map((item, index) => (
-                              <motion.div
-                                key={item.id}
-                                className="flex justify-between items-start py-3 border-b border-amber-100 last:border-b-0"
-                                initial={{ opacity: 0, x: -20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{
-                                  duration: 0.4,
-                                  delay: index * 0.05,
-                                }}
-                                viewport={{ once: true }}
-                                whileHover={{
-                                  x: 5,
-                                  backgroundColor: "rgba(251, 191, 36, 0.05)",
-                                }}
-                              >
-                                <div className="flex-1 pr-4">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
-                                      {item.name}
-                                    </h3>
-                                    {item.is_popular && (
-                                      <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-2 py-1 flex items-center">
-                                        <Star className="w-3 h-3 mr-1" />
-                                        Popüler
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  <p className="text-gray-600 text-sm">
-                                    {item.description}
-                                  </p>
-                                </div>
+                            {category.items
+                              .filter((item) => item.is_active === true)
+                              .map((item, index) => (
                                 <motion.div
-                                  className="text-right"
-                                  whileHover={{ scale: 1.05 }}
+                                  key={item.id}
+                                  className="flex justify-between items-start py-3 border-b border-amber-100 last:border-b-0"
+                                  initial={{ opacity: 0, x: -20 }}
+                                  whileInView={{ opacity: 1, x: 0 }}
+                                  transition={{
+                                    duration: 0.4,
+                                    delay: index * 0.05,
+                                  }}
+                                  viewport={{ once: true }}
+                                  whileHover={{
+                                    x: 5,
+                                    backgroundColor: "rgba(251, 191, 36, 0.05)",
+                                  }}
                                 >
-                                  <span className="text-xl font-bold text-amber-700">
-                                    {item.price
-                                      ? `${item.price}₺`
-                                      : "Fiyat için sorunuz"}
-                                  </span>
+                                  <div className="flex-1 pr-4">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h3 className="font-semibold text-amber-800 text-base sm:text-lg">
+                                        {item.name}
+                                      </h3>
+                                      {item.is_popular && (
+                                        <Badge className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs px-2 py-1 flex items-center">
+                                          <Star className="w-3 h-3 mr-1" />
+                                          Popüler
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-gray-600 text-sm">
+                                      {item.description}
+                                    </p>
+                                  </div>
+                                  <motion.div
+                                    className="text-right"
+                                    whileHover={{ scale: 1.05 }}
+                                  >
+                                    <span className="text-xl font-bold text-amber-700">
+                                      {item.price
+                                        ? `${item.price}₺`
+                                        : "Fiyat için sorunuz"}
+                                    </span>
+                                  </motion.div>
                                 </motion.div>
-                              </motion.div>
-                            ))}
+                              ))}
                           </div>
                         </div>
                       </motion.div>
@@ -313,53 +315,56 @@ export default function MenuPage() {
                   transition={{ duration: 0.5 }}
                   className="w-full grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 p-4"
                 >
-                  {specialMenu.map((menu, index) => (
-                    <motion.div
-                      className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
-                      key={index}
-                      initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{
-                        duration: 0.6,
-                        delay: index * 0.1,
-                        type: "spring",
-                        stiffness: 100,
-                      }}
-                      whileHover={{
-                        y: -10,
-                        scale: 1.02,
-                        transition: { duration: 0.3 },
-                        boxShadow: "0 25px 50px -12px rgba(251, 191, 36, 0.25)",
-                      }}
-                      viewport={{ once: true }}
-                    >
+                  {specialMenu
+                    .filter((s) => s.is_active === true)
+                    .map((menu, index) => (
                       <motion.div
-                        whileHover={{ scale: 1.03 }}
-                        transition={{ duration: 0.25 }}
-                        className="relative overflow-hidden rounded-t-xl"
+                        className="col-span-1 w-full relative rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
+                        key={index}
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{
+                          duration: 0.6,
+                          delay: index * 0.1,
+                          type: "spring",
+                          stiffness: 100,
+                        }}
+                        whileHover={{
+                          y: -10,
+                          scale: 1.02,
+                          transition: { duration: 0.3 },
+                          boxShadow:
+                            "0 25px 50px -12px rgba(251, 191, 36, 0.25)",
+                        }}
+                        viewport={{ once: true }}
                       >
-                        <Image
-                          src={menu.image_url || "/placeholder.svg"}
-                          alt={menu.name}
-                          width={600}
-                          height={800}
-                          className="w-full h-56 sm:h-64 object-cover"
-                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
-                          priority={index === 0}
-                        />
-                      </motion.div>
-                      <div className="p-4 sm:p-5 bg-white border-t border-amber-200">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="text-amber-900 font-semibold leading-snug">
-                            {menu.name}
-                          </p>
-                          <span className="text-amber-700 font-bold text-lg shrink-0">
-                            {menu.price}₺
-                          </span>
+                        <motion.div
+                          whileHover={{ scale: 1.03 }}
+                          transition={{ duration: 0.25 }}
+                          className="relative overflow-hidden rounded-t-xl"
+                        >
+                          <Image
+                            src={menu.image_url || "/placeholder.svg"}
+                            alt={menu.name}
+                            width={600}
+                            height={800}
+                            className="w-full h-56 sm:h-64 object-cover"
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
+                            priority={index === 0}
+                          />
+                        </motion.div>
+                        <div className="p-4 sm:p-5 bg-white border-t border-amber-200">
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="text-amber-900 font-semibold leading-snug">
+                              {menu.name}
+                            </p>
+                            <span className="text-amber-700 font-bold text-lg shrink-0">
+                              {menu.price}₺
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    ))}
                 </motion.div>
               )}
             </AnimatePresence>
