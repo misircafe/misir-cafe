@@ -353,7 +353,7 @@ function SpecialMenuTab() {
         )}
       </div>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>
               Bu özel menüyü silmek istediğinize emin misiniz?

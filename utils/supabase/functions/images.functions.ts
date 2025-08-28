@@ -43,7 +43,6 @@ export const deleteImage = async (url: string): Promise<boolean> => {
     const filePath = decodeURIComponent(
       urlObj.pathname.slice(idx + publicPrefix.length)
     );
-    console.log("Deleting file path:", filePath); // örn: category/1756308429880.png
 
     const { error } = await supabase.storage
       .from("misircafe")

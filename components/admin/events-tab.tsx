@@ -474,7 +474,7 @@ function EventsTab() {
         )}
       </div>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>
               Bu etkinliği silmek istediğinize emin misiniz?

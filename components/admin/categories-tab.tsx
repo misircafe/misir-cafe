@@ -384,7 +384,7 @@ function CategoriesTab() {
         )}
       </div>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>
               Bu kategoriyi silmek istediğinize emin misiniz?
