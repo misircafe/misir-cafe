@@ -1,7 +1,7 @@
 export interface MenuItem {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   price: string;
   is_popular: boolean;
   category_id: string;
@@ -10,7 +10,7 @@ export interface MenuItem {
 
 export interface addMenuItemType {
   name: string;
-  description: string;
+  description?: string;
   price: string;
   is_popular: boolean;
   category_id: string;

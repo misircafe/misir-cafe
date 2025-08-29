@@ -5,7 +5,8 @@ export const getMenu = async () => {
     .from("categories")
     .select(
       "id,title,description,image_url, items:menu_items(id,name,description,price,is_popular,is_active)"
-    );
+    )
+    .order("sort_order", { ascending: true });
 
   if (error) throw error;
   return data;

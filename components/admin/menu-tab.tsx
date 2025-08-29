@@ -53,7 +53,7 @@ import { Badge } from "../ui/badge";
 
 const formSchema = z.object({
   name: z.string().min(1),
-  description: z.string().min(1),
+  description: z.string().optional(),
   price: z.string().min(1),
   is_popular: z.boolean(),
   category_id: z.string().min(1),

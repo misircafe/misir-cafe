@@ -1,7 +1,7 @@
 export interface Event {
   id: string;
   artist_name: string;
-  description: string;
+  description?: string;
   image_url: string;
   date: EventDate[];
   is_active: boolean;
@@ -9,7 +9,7 @@ export interface Event {
 
 export interface addEventType {
   artist_name: string;
-  description: string;
+  description?: string;
   image_url?: string;
   date: EventDate[];
   is_active: boolean;

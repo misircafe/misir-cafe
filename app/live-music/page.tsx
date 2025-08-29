@@ -131,9 +131,10 @@ export default function LiveMusicPage() {
                       <CardTitle className="text-lg text-amber-800 mb-1">
                         {event.artist_name}
                       </CardTitle>
-                      <p className="text-sm text-gray-500">
-                        {event.description}
-                      </p>
+                      <div
+                        className="text-sm text-gray-500 prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: event.description }}
+                      />
                     </CardHeader>
 
                     <CardContent className="pb-6">

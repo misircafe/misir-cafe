@@ -71,3 +71,15 @@ export const getCategoryItemCount = async (id: string): Promise<number> => {
   }
   return count || 0;
 };
+
+export const updateCategoryOrder = async (categories: Category[]) => {
+  for (let index = 0; index < categories.length; index++) {
+    const cat = categories[index];
+    const { error } = await supabase
+      .from("categories")
+      .update({ sort_order: index + 1 }) // sadece güncelleme
+      .eq("id", cat.id); // hangi id güncellenecek
+
+    if (error) throw error;
+  }
+};

@@ -1,13 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Calendar, Clock, Users } from "lucide-react";
@@ -46,6 +39,11 @@ import {
   updateEvent,
 } from "@/utils/supabase/functions/event.functions";
 import { PostgrestError } from "@supabase/supabase-js";
+import dynamic from "next/dynamic";
+
+const TipTapEditor = dynamic(() => import("@/components/admin/tiptap-editor"), {
+  ssr: false,
+});
 
 const eventDateSchema = z.object({
   day: z
@@ -60,7 +58,7 @@ const eventDateSchema = z.object({
 
 const formSchema = z.object({
   artist_name: z.string().min(1, { message: "Sanatçı ismi zorunludur." }),
-  description: z.string().min(1, { message: "Açıklama zorunludur." }),
+  description: z.string().optional(),
   image_url: z.string().optional(),
   is_active: z.boolean(),
   date: z
@@ -213,7 +211,10 @@ function EventsTab() {
               Yeni Etkinlik
             </Button>
           </DialogTrigger>
-          <DialogContent aria-describedby={undefined}>
+          <DialogContent
+            aria-describedby={undefined}
+            className="w-11/12 md:w-4xl max-h-[90vh] overflow-y-auto"
+          >
             <DialogHeader>
               <DialogTitle>Yeni Etklinlik Ekle</DialogTitle>
             </DialogHeader>
@@ -241,7 +242,20 @@ function EventsTab() {
                     <FormItem>
                       <FormLabel>Açıklama</FormLabel>
                       <FormControl>
-                        <Textarea {...field} placeholder="Açıklama giriniz" />
+                        <div className="flex flex-col">
+                          <TipTapEditor
+                            content={field.value || ""}
+                            onChange={field.onChange}
+                          />
+                          <div className="mt-4 border rounded-lg p-4 min-h-[150px] bg-gray-50 overflow-auto">
+                            <div
+                              className="prose"
+                              dangerouslySetInnerHTML={{
+                                __html: field.value || "",
+                              }}
+                            />
+                          </div>
+                        </div>
                       </FormControl>
                     </FormItem>
                   )}
@@ -336,7 +350,7 @@ function EventsTab() {
                   control={form.control}
                   name="image_url"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="h-fit">
                       <FormLabel>Resim</FormLabel>
                       <FormControl>
                         <div className="space-y-2">
@@ -433,7 +447,10 @@ function EventsTab() {
                   {event.is_active ? "Aktif" : "Pasif"}
                 </Badge>
               </div>
-              <p className="text-gray-400 px-4">{event.description}</p>
+              <div
+                className="text-sm text-gray-500 prose max-w-none px-3"
+                dangerouslySetInnerHTML={{ __html: event.description || "" }}
+              />
               <div className="px-4 py-4 space-y-2">
                 {event.date.map((date) => (
                   <div key={date.day} className="flex justify-between">
