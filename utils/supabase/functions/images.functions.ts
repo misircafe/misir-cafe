@@ -30,32 +30,30 @@ export const uploadImage = async (
 // Resim silme
 export const deleteImage = async (url: string): Promise<boolean> => {
   try {
-    // URL'den bucket path'i ayırıyoruz
-    const urlObj = new URL(url);
-    const publicPrefix = "/storage/v1/object/public/misircafe/";
-    const idx = urlObj.pathname.indexOf(publicPrefix);
+    // Sadece Supabase bucket içindeki resimleri sil
+    const bucketBase = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/misircafe/`;
 
-    if (idx === -1) {
-      console.error("URL misircafe bucket ile başlamıyor");
-      return false;
+    if (!url.startsWith(bucketBase)) {
+      // Dış URL → silmeye gerek yok
+      console.log("External image, skipping delete:", url);
+      return true;
     }
 
-    const filePath = decodeURIComponent(
-      urlObj.pathname.slice(idx + publicPrefix.length)
-    );
+    // Supabase URL → filePath çıkar
+    const filePath = url.replace(bucketBase, "");
 
     const { error } = await supabase.storage
       .from("misircafe")
       .remove([filePath]);
 
     if (error) {
-      console.log("Delete error", error);
+      console.error("Delete error", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(error);
+    console.error("DeleteImage exception", error);
     return false;
   }
 };
