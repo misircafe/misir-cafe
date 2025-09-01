@@ -1,3 +1,8 @@
+export interface EventDate {
+  start: string; // ISO string, örn: "2025-09-01T14:00:00Z"
+  end: string; // ISO string, örn: "2025-09-01T16:00:00Z"
+}
+
 export interface Event {
   id: string;
   artist_name: string;
@@ -13,9 +18,4 @@ export interface addEventType {
   image_url?: string;
   date: EventDate[];
   is_active: boolean;
-}
-
-export interface EventDate {
-  day: number;
-  clock: string;
 }

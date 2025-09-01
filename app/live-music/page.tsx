@@ -4,23 +4,46 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Music } from "lucide-react";
+import { Calendar, Music } from "lucide-react";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getEvents } from "@/utils/supabase/functions/ui.functions";
 
-const daysOfWeek = [
-  { value: 0, label: "Pazartesi" },
-  { value: 1, label: "Salı" },
-  { value: 2, label: "Çarşamba" },
-  { value: 3, label: "Perşembe" },
-  { value: 4, label: "Cuma" },
-  { value: 5, label: "Cumartesi" },
-  { value: 6, label: "Pazar" },
-];
+// Tarihleri karşılaştırıp en yakın 3 tarihi seç
+const getSortedDates = (dates: { start: string; end: string }[]) => {
+  const now = new Date();
+  return dates
+    .map((d) => ({
+      ...d,
+      startDate: new Date(d.start),
+      endDate: new Date(d.end),
+    }))
+    .filter((d) => d.endDate >= now) // Bitiş zamanı geçmemiş etkinlikler
+    .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+    .slice(0, 3);
+};
+
+// Şu anda canlı mı kontrolü
+const isLiveNow = (dates: { start: string; end: string }[]) => {
+  const now = new Date();
+  return dates.some((d) => {
+    const start = new Date(d.start);
+    const end = new Date(d.end);
+    return start <= now && now <= end;
+  });
+};
+
+// Tarih formatlama
+const formatDateRange = (start: Date, end: Date) => {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${pad(start.getDate())}.${pad(
+    start.getMonth() + 1
+  )}.${start.getFullYear()} ${pad(start.getHours())}:${pad(
+    start.getMinutes()
+  )}/${pad(end.getHours())}:${pad(end.getMinutes())}`;
+};
 
 export default function LiveMusicPage() {
   const eventsRef = useRef<HTMLDivElement>(null);
@@ -98,26 +121,32 @@ export default function LiveMusicPage() {
         >
           {events
             .filter((item) => item.is_active)
-            .map((event, index) => {
-              const activeEvents = events.filter((e) => e.is_active);
-              const isLastOddItem =
-                activeEvents.length % 2 === 1 &&
-                index === activeEvents.length - 1;
+            .map((event) => {
+              const upcomingDates = getSortedDates(event.date);
+              if (upcomingDates.length === 0) return null;
+
+              const firstDate = upcomingDates[0];
+              const otherDates = upcomingDates.slice(1);
+              const liveNow = isLiveNow(event.date);
 
               return (
                 <motion.div
                   key={event.id}
-                  className={cn(
-                    "flex justify-center",
-                    isLastOddItem &&
-                      "md:col-span-2 md:flex md:justify-center lg:col-span-1"
-                  )}
+                  className="flex justify-center"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  transition={{ duration: 0.6 }}
                   whileHover={{ y: -8, scale: 1.02 }}
                 >
-                  <Card className="pt-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col w-full h-full max-w-md">
+                  <Card className="relative pt-0 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col w-full h-full max-w-md">
+                    {/* LIVE Badge */}
+                    {liveNow && (
+                      <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-red-600 text-white font-bold text-xs flex items-center gap-1 animate-pulse z-10">
+                        <Music className="w-3 h-3 text-white animate-pulse" />
+                        LIVE
+                      </div>
+                    )}
+
                     <div className="relative w-full aspect-[4/3]">
                       <Image
                         src={event.image_url}
@@ -138,23 +167,33 @@ export default function LiveMusicPage() {
                     </CardHeader>
 
                     <CardContent className="pb-6">
-                      <div className="space-y-3">
-                        {event.date.map((d: any, i: number) => {
-                          const dayLabel =
-                            daysOfWeek.find((day) => day.value === d.day)
-                              ?.label || "";
-                          return (
-                            <div
-                              key={i}
-                              className="flex items-center text-gray-600"
-                            >
-                              <Calendar className="w-4 h-4 mr-2" />
-                              <span className="text-sm">
-                                Her {dayLabel} - saat {d.clock}
-                              </span>
-                            </div>
-                          );
-                        })}
+                      <div className="space-y-2">
+                        {/* En yakın tarih öne çıkmış */}
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-md font-semibold bg-amber-600 text-white">
+                          <Calendar className="w-4 h-4" />
+                          <span>
+                            {formatDateRange(
+                              new Date(firstDate.start),
+                              new Date(firstDate.end)
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Diğer 2 tarih */}
+                        {otherDates.map((d, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 px-3 py-1 rounded-md font-medium text-gray-600 bg-white/0"
+                          >
+                            <Calendar className="w-4 h-4" />
+                            <span>
+                              {formatDateRange(
+                                new Date(d.start),
+                                new Date(d.end)
+                              )}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -162,41 +201,8 @@ export default function LiveMusicPage() {
               );
             })}
         </motion.div>
-
-        {/* Bottom Info */}
-        <motion.div
-          className="mt-16"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <Card className="bg-white/90 backdrop-blur-sm max-w-2xl mx-auto border-0 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <motion.div
-                className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mb-6 mx-auto"
-                whileHover={{ rotate: 360, scale: 1.1 }}
-                transition={{ duration: 0.6 }}
-              >
-                <Music className="w-8 h-8 text-white" />
-              </motion.div>
-              <h3 className="text-2xl font-semibold text-amber-800 mb-4 font-serif">
-                Sanatçı Olmak İster misiniz?
-              </h3>
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                Mısır Cafe'de performans sergilemek istiyorsanız, demo
-                kayıtlarınızı bizimle paylaşın. Yetenekli sanatçıları keşfetmek
-                ve desteklemek bizim tutkumuz.
-              </p>
-              <Button
-                variant="outline"
-                className="border-amber-600 text-amber-600 hover:bg-amber-50 bg-transparent px-6 py-3 transition-all duration-300 hover:scale-105"
-              >
-                Başvuru Yap: info@misircafe.com
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
+
       <Footer />
     </div>
   );

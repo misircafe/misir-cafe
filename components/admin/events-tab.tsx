@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Calendar, Clock, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar } from "lucide-react";
 import z from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
@@ -23,10 +23,9 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
-import { EventDate, Event } from "@/types/event.type";
+import { Event } from "@/types/event.type";
 import { toast } from "sonner";
 import {
   deleteImage,
@@ -46,13 +45,11 @@ const TipTapEditor = dynamic(() => import("@/components/admin/tiptap-editor"), {
 });
 
 const eventDateSchema = z.object({
-  day: z
-    .number()
-    .int()
-    .min(0, { message: "Gün 1 ile 7 arasında olmalıdır." })
-    .max(6, { message: "Gün 1 ile 7 arasında olmalıdır." }),
-  clock: z.string().regex(/^([0-1]\d|2[0-3]):([0-5]\d)$/, {
-    message: "Saat HH:MM formatında olmalıdır",
+  start: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Geçerli bir başlangıç tarihi giriniz",
+  }),
+  end: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: "Geçerli bir bitiş tarihi giriniz",
   }),
 });
 
@@ -65,16 +62,6 @@ const formSchema = z.object({
     .array(eventDateSchema)
     .min(1, { message: "En az bir tarih olmalıdır." }),
 });
-
-const daysOfWeek = [
-  { value: 0, label: "Pazartesi" },
-  { value: 1, label: "Salı" },
-  { value: 2, label: "Çarşamba" },
-  { value: 3, label: "Perşembe" },
-  { value: 4, label: "Cuma" },
-  { value: 5, label: "Cumartesi" },
-  { value: 6, label: "Pazar" },
-];
 
 function EventsTab() {
   const [isOpen, setIsOpen] = useState(false);
@@ -92,8 +79,13 @@ function EventsTab() {
       description: "",
       image_url: "",
       is_active: true,
-      date: [],
+      date: [{ start: "", end: "" }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "date",
   });
 
   useEffect(() => {
@@ -105,12 +97,12 @@ function EventsTab() {
       const data = await getEvents();
       setEvents(data || []);
     } catch (error) {
-      const errMsg =
+      toast.error(
         "Eventler listelenirken bir hata oluştu: " +
-        ((error as PostgrestError)?.message ??
-          (error as Error)?.message ??
-          "Bilinmeyen hata");
-      toast.error(errMsg);
+          ((error as PostgrestError)?.message ??
+            (error as Error)?.message ??
+            "Bilinmeyen hata")
+      );
     }
   };
 
@@ -118,44 +110,58 @@ function EventsTab() {
     const toastId = toast.loading(
       editingEvent ? "Event güncelleniyor..." : "Event ekleniyor..."
     );
-
     try {
       let imageUrl = data.image_url;
-      if (file) {
-        imageUrl = await uploadImage(file, "event");
-      }
-
-      if (!imageUrl) {
-        toast.error("Resim yüklenemedi", { id: toastId });
-        throw new Error("Resim yüklenemedi.");
-      }
-
+      if (file) imageUrl = await uploadImage(file, "event");
+      if (!imageUrl) throw new Error("Resim yüklenemedi");
       data.image_url = imageUrl;
 
-      if (editingEvent) {
-        await updateEvent(editingEvent.id, data);
-      } else {
-        await addEvent(data);
-      }
+      // start/end değerlerini ISO string yapıyoruz
+      const dateWithTimestamps = data.date.map((d) => ({
+        start: new Date(d.start).toISOString(),
+        end: new Date(d.end).toISOString(),
+      }));
+      const payload = { ...data, date: dateWithTimestamps };
 
-      const updatedEvents = await getEvents();
+      if (editingEvent) await updateEvent(editingEvent.id, payload);
+      else await addEvent(payload);
 
-      setEvents(updatedEvents);
+      await fetchEvents();
       toast.success(editingEvent ? "Event güncellendi" : "Event eklendi", {
         id: toastId,
       });
-      form.reset();
+      form.reset({
+        artist_name: "",
+        description: "",
+        image_url: "",
+        is_active: true,
+        date: [{ start: "", end: "" }],
+      });
       setPreview(null);
       setFile(null);
       setIsOpen(false);
+      setEditingEvent(null);
     } catch (error) {
-      const errMsg =
+      toast.error(
         "Event eklenirken bir hata oluştu: " +
-        ((error as PostgrestError)?.message ??
-          (error as Error)?.message ??
-          "Bilinmeyen hata");
-      toast.error(errMsg, { id: toastId });
+          ((error as PostgrestError)?.message ??
+            (error as Error)?.message ??
+            "Bilinmeyen hata"),
+        { id: toastId }
+      );
     }
+  };
+
+  const toDateTimeLocal = (isoString: string) => {
+    if (!isoString) return "";
+    const d = new Date(isoString);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const min = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
   };
 
   const handleEdit = (event: Event) => {
@@ -163,10 +169,16 @@ function EventsTab() {
     setPreview(event.image_url || null);
     setFile(null);
 
+    // ISO string => datetime-local formatına çevir
+    const formattedDates = event.date.map((d) => ({
+      start: toDateTimeLocal(d.start),
+      end: toDateTimeLocal(d.end),
+    }));
+
     form.reset({
       ...event,
+      date: formattedDates,
     });
-
     setIsOpen(true);
   };
 
@@ -175,22 +187,29 @@ function EventsTab() {
     try {
       await deleteEvent(id);
       const deletedImage = events?.find((event) => event.id === id)?.image_url;
-      if (!deletedImage) {
-        toast.error("Etkinlik silinirken bir hata oluştu", { id: toastId });
-        throw new Error("Etkinlik silinirken bir hata oluştu.");
-      }
-      await deleteImage(deletedImage);
-      const updatedEvents = await getEvents();
-      setEvents(updatedEvents);
+      if (deletedImage) await deleteImage(deletedImage);
+      await fetchEvents();
       toast.success("Etkinlik silindi", { id: toastId });
     } catch (error) {
-      const errMsg =
+      toast.error(
         "Etkinlik silinirken bir hata oluştu: " +
-        ((error as PostgrestError)?.message ??
-          (error as Error)?.message ??
-          "Bilinmeyen hata");
-      toast.error(errMsg, { id: toastId });
+          ((error as PostgrestError)?.message ??
+            (error as Error)?.message ??
+            "Bilinmeyen hata"),
+        { id: toastId }
+      );
     }
+  };
+
+  const formatDateRange = (startISO: string, endISO: string) => {
+    const start = new Date(startISO);
+    const end = new Date(endISO);
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${pad(start.getDate())}.${pad(
+      start.getMonth() + 1
+    )}.${start.getFullYear()} ${pad(start.getHours())}:${pad(
+      start.getMinutes()
+    )}/${pad(end.getHours())}:${pad(end.getMinutes())}`;
   };
 
   return (
@@ -216,13 +235,16 @@ function EventsTab() {
             className="w-11/12 md:w-4xl max-h-[90vh] overflow-y-auto"
           >
             <DialogHeader>
-              <DialogTitle>Yeni Etklinlik Ekle</DialogTitle>
+              <DialogTitle>
+                {editingEvent ? "Etkinlik Düzenle" : "Yeni Etkinlik Ekle"}
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
+                {/* Sanatçı Adı */}
                 <FormField
                   control={form.control}
                   name="artist_name"
@@ -232,34 +254,42 @@ function EventsTab() {
                       <FormControl>
                         <Input {...field} placeholder="Sanatçı adı giriniz" />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
+                {/* Açıklama */}
                 <FormField
                   control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Açıklama</FormLabel>
+
+                      {/* TipTapEditor tek child */}
                       <FormControl>
-                        <div className="flex flex-col">
-                          <TipTapEditor
-                            content={field.value || ""}
-                            onChange={field.onChange}
-                          />
-                          <div className="mt-4 border rounded-lg p-4 min-h-[150px] bg-gray-50 overflow-auto">
-                            <div
-                              className="prose"
-                              dangerouslySetInnerHTML={{
-                                __html: field.value || "",
-                              }}
-                            />
-                          </div>
-                        </div>
+                        <TipTapEditor
+                          content={field.value || ""}
+                          onChange={field.onChange}
+                        />
                       </FormControl>
+
+                      {/* Önizleme div’i FormControl dışında */}
+                      <div className="mt-2 border rounded-lg p-4 min-h-[150px] bg-gray-50 overflow-auto">
+                        <div
+                          className="prose"
+                          dangerouslySetInnerHTML={{
+                            __html: field.value || "",
+                          }}
+                        />
+                      </div>
+
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Aktif Checkbox */}
                 <FormField
                   control={form.control}
                   name="is_active"
@@ -276,84 +306,48 @@ function EventsTab() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="date"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Haftanın günleri</FormLabel>
-                      <div className="space-y-2">
-                        {daysOfWeek.map((day) => {
-                          const isChecked = form
-                            .watch("date")
-                            ?.some((d: EventDate) => d.day === day.value);
-                          return (
-                            <div
-                              key={day.value}
-                              className="flex items-center gap-3"
-                            >
-                              <Checkbox
-                                checked={isChecked}
-                                onCheckedChange={(checked) => {
-                                  const currentDates =
-                                    form.getValues("date") || [];
-                                  if (checked) {
-                                    form.setValue("date", [
-                                      ...currentDates,
-                                      { day: day.value, clock: "" },
-                                    ]);
-                                  } else {
-                                    form.setValue(
-                                      "date",
-                                      currentDates.filter(
-                                        (d: EventDate) => d.day !== day.value
-                                      )
-                                    );
-                                  }
-                                }}
-                              />
-                              <span>{day.label}</span>
-                              {isChecked && (
-                                <Input
-                                  type="time"
-                                  step={1800}
-                                  value={
-                                    form
-                                      .getValues("date")
-                                      ?.find(
-                                        (d: EventDate) => d.day === day.value
-                                      )?.clock || ""
-                                  }
-                                  onChange={(e) => {
-                                    const currentDates =
-                                      form.getValues("date") || [];
-                                    form.setValue(
-                                      "date",
-                                      currentDates.map((d: EventDate) =>
-                                        d.day === day.value
-                                          ? { ...d, clock: e.target.value }
-                                          : d
-                                      )
-                                    );
-                                  }}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Tarihler */}
+                <div>
+                  <FormLabel className="mb-3">Tarih ve Saatler</FormLabel>
+                  {fields.map((f, idx) => (
+                    <div key={f.id} className="flex gap-2 items-center mb-2">
+                      <Input
+                        type="datetime-local"
+                        {...form.register(`date.${idx}.start`)}
+                        className="flex-1"
+                      />
+                      <Input
+                        type="datetime-local"
+                        {...form.register(`date.${idx}.end`)}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => remove(idx)}
+                      >
+                        Sil
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => append({ start: "", end: "" })}
+                  >
+                    + Tarih Ekle
+                  </Button>
+                  <FormMessage />
+                </div>
+                {/* Resim */}
                 <FormField
                   control={form.control}
                   name="image_url"
                   render={({ field }) => (
-                    <FormItem className="h-fit">
+                    <FormItem>
                       <FormLabel>Resim</FormLabel>
                       <FormControl>
-                        <div className="space-y-2">
+                        <div>
                           <Input
                             type="file"
                             accept="image/*"
@@ -361,7 +355,7 @@ function EventsTab() {
                               const selectedFile = e.target.files?.[0];
                               if (selectedFile) {
                                 setFile(selectedFile);
-                                field.onChange(""); // URL temizle
+                                field.onChange("");
                                 const reader = new FileReader();
                                 reader.onloadend = () =>
                                   setPreview(reader.result as string);
@@ -372,9 +366,9 @@ function EventsTab() {
                           <Input
                             type="url"
                             placeholder="Veya resim URL'si giriniz"
-                            {...field} // <-- burası field.value ve field.onChange sağlar
+                            {...field}
                             onChange={(e) => {
-                              field.onChange(e); // react-hook-form’a bildir
+                              field.onChange(e);
                               setFile(null);
                               setPreview(e.target.value);
                             }}
@@ -394,7 +388,6 @@ function EventsTab() {
                               className="object-cover"
                               unoptimized
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                           </div>
                         </div>
                       )}
@@ -413,16 +406,17 @@ function EventsTab() {
         </Dialog>
       </div>
 
+      {/* Event Listesi */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {events?.length === 0 ? (
-          <div className="col-span-full text-center  text-gray-500">
-            Henüz bir özel menü yok.
+          <div className="col-span-full text-center text-gray-500">
+            Henüz bir etkinlik yok.
           </div>
         ) : (
           events?.map((event) => (
             <div
-              className="relative col-span-1 w-full rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
               key={event.id}
+              className="relative col-span-1 w-full rounded-xl overflow-hidden shadow-xl bg-white border border-amber-200"
             >
               <div className="relative w-full h-48 sm:h-64 overflow-hidden rounded-t-lg">
                 <Image
@@ -434,9 +428,7 @@ function EventsTab() {
                 />
               </div>
               <div className="py-2 px-4 text-amber-800 flex justify-between">
-                <div className="flex">
-                  <p className="font-bold">{event.artist_name}</p>
-                </div>
+                <p className="font-bold">{event.artist_name}</p>
                 <Badge
                   className={
                     event.is_active
@@ -452,15 +444,14 @@ function EventsTab() {
                 dangerouslySetInnerHTML={{ __html: event.description || "" }}
               />
               <div className="px-4 py-4 space-y-2">
-                {event.date.map((date) => (
-                  <div key={date.day} className="flex justify-between">
-                    <div className="text-gray-400 font-semibold text-sm flex">
+                {event.date.map((d, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between text-gray-400 font-semibold text-sm"
+                  >
+                    <div className="flex items-center">
                       <Calendar className="w-5 h-5 mr-2" />
-                      <p>{daysOfWeek[date.day].label}</p>
-                    </div>
-                    <div className="text-gray-400 font-semibold text-sm flex">
-                      <Clock className="w-5 h-5 mr-2" />
-                      <p>{date.clock}</p>
+                      {formatDateRange(d.start, d.end)}
                     </div>
                   </div>
                 ))}
@@ -490,6 +481,8 @@ function EventsTab() {
           ))
         )}
       </div>
+
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent aria-describedby={undefined}>
           <DialogHeader>
