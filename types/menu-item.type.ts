@@ -12,6 +12,7 @@ export interface addMenuItemType {
   name: string;
   description?: string;
   price: string;
+  sort_order?: number; // <- burayı ekle
   is_popular: boolean;
   category_id: string;
   is_active: boolean;

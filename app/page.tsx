@@ -106,7 +106,7 @@ export default function HomePage() {
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src="/bgvideo1.webm" type="video/webm" />
+            <source src="/yeni.webm" type="video/webm" />
           </video>
           <div className="absolute inset-0 bg-black/60"></div>
         </div>
@@ -244,7 +244,7 @@ export default function HomePage() {
 
       <motion.section
         id="contact"
-        className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-amber-800 to-amber-900 text-white"
+        className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-[#f5e6c8] to-[#eadbc2] text-black"
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
@@ -265,7 +265,7 @@ export default function HomePage() {
 
           {/* Harita Bölümü */}
           <motion.div
-            className="w-full h-96 rounded-2xl overflow-hidden shadow-2xl"
+            className="w-full h-96 rounded-2xl overflow-hidden shadow-2xl mt-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -293,21 +293,21 @@ export default function HomePage() {
           >
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <MapPin className="min-w-5 min-h-5" />
-              <span className="text-amber-100">
+              <span className="text-black">
                 Meşrutiyet, Karanfil Sk. No:34/A, 06420 Çankaya/Ankara
               </span>
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Phone className="w-5 h-5" />
-              <span className="text-amber-100">+90 216 555 0123</span>
+              <span className="text-black">+90 216 555 0123</span>
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Mail className="w-5 h-5" />
-              <span className="text-amber-100">info@misircafe.com</span>
+              <span className="text-black">info@misircafe.com</span>
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Clock className="w-5 h-5" />
-              <span className="text-amber-100">08:00 - 24:00</span>
+              <span className="text-black">08:00 - 24:00</span>
             </div>
           </motion.div>
         </div>

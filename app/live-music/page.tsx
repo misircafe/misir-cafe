@@ -82,7 +82,7 @@ export default function LiveMusicPage() {
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
           >
-            <source src="/bgvideo2.webm" type="video/webm" />
+            <source src="/bg-video.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-black/60"></div>
         </div>

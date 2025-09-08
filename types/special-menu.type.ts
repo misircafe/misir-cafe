@@ -1,6 +1,7 @@
 export interface SpecialMenu {
   id: string;
   name: string;
+  description?: string;
   price: string;
   image_url: string;
   is_active: boolean;
@@ -8,6 +9,7 @@ export interface SpecialMenu {
 
 export interface addSpecialMenuType {
   name: string;
+  description?: string;
   price: string;
   image_url?: string;
   is_active: boolean;

@@ -31,9 +31,11 @@ import {
 import { SpecialMenu } from "@/types/special-menu.type";
 import { PostgrestError } from "@supabase/supabase-js";
 
+// ✅ Schema güncellemesi
 const formSchema = z.object({
   name: z.string().min(1, "Lütfen bir isim girin"),
   price: z.string().min(1, "Lütfen bir fiyat girin"),
+  description: z.string().min(1, "Lütfen bir açıklama girin"), // yeni alan
   image_url: z.string().optional(),
   is_active: z.boolean(),
 });
@@ -54,6 +56,7 @@ function SpecialMenuTab() {
     defaultValues: {
       name: "",
       price: "",
+      description: "", // yeni alan
       image_url: "",
       is_active: true,
     },
@@ -132,6 +135,7 @@ function SpecialMenuTab() {
     form.reset({
       name: specialMenu.name,
       price: specialMenu.price,
+      description: specialMenu.description, // ✅ düzenleme sırasında doldur
       is_active: specialMenu.is_active,
       image_url: specialMenu.image_url,
     });
@@ -179,13 +183,18 @@ function SpecialMenuTab() {
           </DialogTrigger>
           <DialogContent aria-describedby={undefined}>
             <DialogHeader>
-              <DialogTitle>Yeni Özel Menü Ekle</DialogTitle>
+              <DialogTitle>
+                {editingSpecialMenu
+                  ? "Özel Menü Düzenle"
+                  : "Yeni Özel Menü Ekle"}
+              </DialogTitle>
             </DialogHeader>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
+                {/* Menü Adı */}
                 <FormField
                   control={form.control}
                   name="name"
@@ -199,6 +208,28 @@ function SpecialMenuTab() {
                     </FormItem>
                   )}
                 />
+
+                {/* Açıklama */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Açıklama</FormLabel>
+                      <FormControl>
+                        <textarea
+                          {...field}
+                          className="w-full border rounded-md p-2"
+                          placeholder="Menü açıklamasını girin"
+                          rows={3}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Fiyat */}
                 <FormField
                   control={form.control}
                   name="price"
@@ -216,6 +247,8 @@ function SpecialMenuTab() {
                     </FormItem>
                   )}
                 />
+
+                {/* Aktif mi */}
                 <FormField
                   control={form.control}
                   name="is_active"
@@ -232,6 +265,8 @@ function SpecialMenuTab() {
                     </FormItem>
                   )}
                 />
+
+                {/* Resim */}
                 <FormField
                   control={form.control}
                   name="image_url"
@@ -287,6 +322,7 @@ function SpecialMenuTab() {
                     </FormItem>
                   )}
                 />
+
                 <Button
                   type="submit"
                   className="w-full bg-amber-600 hover:bg-amber-700 text-white"
@@ -299,6 +335,7 @@ function SpecialMenuTab() {
         </Dialog>
       </div>
 
+      {/* Listeleme */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {specialMenus?.length === 0 ? (
           <div className="col-span-full text-center  text-gray-500">
@@ -328,6 +365,12 @@ function SpecialMenuTab() {
                     {specialMenu.price}₺
                   </span>
                 </div>
+                {/* ✅ Açıklama göster */}
+                {specialMenu.description && (
+                  <p className="text-gray-600 text-sm mt-2">
+                    {specialMenu.description}
+                  </p>
+                )}
               </div>
               <div className="w-full flex justify-end space-x-2 pb-4 pr-4">
                 <Button
@@ -352,6 +395,8 @@ function SpecialMenuTab() {
           ))
         )}
       </div>
+
+      {/* Silme Onay Dialogu */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent aria-describedby={undefined}>
           <DialogHeader>

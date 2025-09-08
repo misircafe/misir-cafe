@@ -10,36 +10,13 @@ import Image from "next/image";
 import Footer from "@/components/footer";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  getCategoriesWithItems,
   getMenu,
   getSpecialMenus,
 } from "@/utils/supabase/functions/ui.functions";
 import { toast } from "sonner";
 import { MenuCategory } from "@/types/ui.types";
 import { SpecialMenu } from "@/types/special-menu.type";
-
-const advantageMenus = [
-  {
-    image: "/special-menu.png",
-    description: "Kola + Hamburger Menü",
-    price: 120,
-  },
-  { image: "/special-menu2.png", description: "Çay + Simit Menü", price: 45 },
-  {
-    image: "/special-menu3.png",
-    description: "Latte + Cheesecake Menü",
-    price: 150,
-  },
-  {
-    image: "/special-menu4.png",
-    description: "Waffle + Meşrubat Menü",
-    price: 160,
-  },
-  {
-    image: "/special-menu5.png",
-    description: "Cold Brew + Kurabiye Menü",
-    price: 80,
-  },
-];
 
 export default function MenuPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -51,7 +28,7 @@ export default function MenuPage() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const result = await getMenu();
+        const result = await getCategoriesWithItems();
         if (!result) {
           toast.error("Menü alınamadı");
           return;
@@ -78,6 +55,8 @@ export default function MenuPage() {
     fetchMenu();
     fetchSpecialMenu();
   }, []);
+
+  console.log(menu);
 
   if (!menu || menu.length === 0 || !specialMenu || specialMenu.length === 0)
     return null;
@@ -193,6 +172,7 @@ export default function MenuPage() {
                     {menu.map((cat) => (
                       <Button
                         variant="outline"
+                        size="sm"
                         key={cat.id}
                         onClick={() => setSelectedCategory(cat.id)}
                         className={`cursor-pointer transition-colors bg-gradient-to-r border ${
@@ -201,7 +181,9 @@ export default function MenuPage() {
                             : "from-amber-100 to-orange-100 border-amber-200 hover:border-amber-400"
                         }`}
                       >
-                        {cat.title.toUpperCase()}
+                        <p className="text-xs md:text-sm">
+                          {cat.title.toLocaleUpperCase("tr-TR")}
+                        </p>
                       </Button>
                     ))}
                   </div>
@@ -338,23 +320,26 @@ export default function MenuPage() {
                         }}
                         viewport={{ once: true }}
                       >
+                        {/* Resim */}
                         <motion.div
                           whileHover={{ scale: 1.03 }}
                           transition={{ duration: 0.25 }}
-                          className="relative overflow-hidden rounded-t-xl"
+                          className="relative overflow-hidden rounded-t-xl bg-white"
                         >
                           <Image
                             src={menu.image_url || "/placeholder.svg"}
                             alt={menu.name}
                             width={600}
                             height={800}
-                            className="w-full h-56 sm:h-64 object-cover"
+                            className="w-full h-56 sm:h-64 object-contain bg-white"
                             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
                             priority={index === 0}
                           />
                         </motion.div>
+
+                        {/* İçerik */}
                         <div className="p-4 sm:p-5 bg-white border-t border-amber-200">
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start justify-between gap-3 mb-2">
                             <p className="text-amber-900 font-semibold leading-snug">
                               {menu.name}
                             </p>
@@ -362,6 +347,10 @@ export default function MenuPage() {
                               {menu.price}₺
                             </span>
                           </div>
+                          {/* Açıklama */}
+                          <p className="text-gray-600 text-sm break-words">
+                            {menu.description || "Açıklama eklenmedi"}
+                          </p>
                         </div>
                       </motion.div>
                     ))}
