@@ -145,16 +145,26 @@ export default function HomePage() {
                       src={item.image_url}
                       width={256}
                       height={256}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   </div>
-                  <div className="p-4 w-fit max-w-[256px] flex justify-between">
-                    <p className="text-amber-900 font-semibold max-w-8/12 leading-snug">
-                      {item.name}
-                    </p>
-                    <span className="text-amber-700 font-bold text-lg shrink-0">
-                      {item.price}₺
-                    </span>
+                  <div className="p-4 w-fit max-w-[256px] flex flex-col gap-2">
+                    {/* İsim + Fiyat */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-amber-900 font-semibold max-w-8/12 leading-snug">
+                        {item.name}
+                      </p>
+                      <span className="text-amber-700 font-bold text-lg shrink-0">
+                        {item.price}₺
+                      </span>
+                    </div>
+
+                    {/* Açıklama */}
+                    {item.description && (
+                      <p className="text-gray-600 text-sm leading-snug line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               ))}
