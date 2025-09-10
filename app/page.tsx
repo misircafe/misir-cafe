@@ -209,11 +209,11 @@ export default function HomePage() {
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Phone className="w-5 h-5" />
-              <span className="text-black">+90 216 555 0123</span>
+              <span className="text-black">+90 506 021 84 18</span>
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Mail className="w-5 h-5" />
-              <span className="text-black">info@misircafe.com</span>
+              <span className="text-black">misircafe2002@gmail.com</span>
             </div>
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Clock className="w-5 h-5" />
