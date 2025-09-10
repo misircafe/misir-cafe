@@ -194,24 +194,32 @@ export default function HomePage() {
               title="Mısır Cafe Konum"
             />
           </div>
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-4 text-center">
-            <div className="flex items-center justify-center gap-2">
+          <motion.div
+            className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-4 text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <MapPin className="min-w-5 min-h-5" />
-              <span>Meşrutiyet, Karanfil Sk. No:34/A, Çankaya/Ankara</span>
+              <span className="text-black">
+                Meşrutiyet, Karanfil Sk. No:34/A, 06420 Çankaya/Ankara
+              </span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Phone className="w-5 h-5" />
-              <span>+90 506 021 84 18</span>
+              <span className="text-black">+90 216 555 0123</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Mail className="w-5 h-5" />
-              <span>misircafe2002@gmail.com</span>
+              <span className="text-black">info@misircafe.com</span>
             </div>
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Clock className="w-5 h-5" />
-              <span>08:00 - 24:00</span>
+              <span className="text-black">08:00 - 24:00</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </motion.section>
 
